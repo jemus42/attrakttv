@@ -27,3 +27,5 @@ Remotes:
     jemus42/tRakt
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
+URL: https://github.com/jemus42/attrakttv
+BugReports: https://github.com/jemus42/attrakttv/issues
