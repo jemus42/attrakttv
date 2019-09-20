@@ -1,0 +1,27 @@
+Package: attrakttv
+Title: A Shiny Application for 'TV Show 'trakt.tv' Data
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Lukas",
+           family = "Burk",
+           role = c("aut", "cre"),
+           email = "lukas@tadaa-data.de",
+           comment = c(ORCID = "0000-0001-7528-3795"))
+Description: What the package does (one paragraph).
+License: CCBY-4.0
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    tRakt (>= 0.14.0.9000),
+    dplyr,
+    purrr,
+    RSQLite,
+    shinyjs,
+    glue,
+    tibble,
+    magrittr,
+    cliapp,
+    stringr
+Remotes: 
+    jemus42/tRakt
+RoxygenNote: 6.1.1
