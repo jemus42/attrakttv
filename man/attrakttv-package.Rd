@@ -4,7 +4,7 @@
 \name{attrakttv-package}
 \alias{attrakttv}
 \alias{attrakttv-package}
-\title{attrakttv: A Shiny Application for 'TV Show 'trakt.tv' Data}
+\title{attrakttv: A Shiny Application for 'trakt.tv' TV Show Data}
 \description{
 What the package does (one paragraph).
 }
