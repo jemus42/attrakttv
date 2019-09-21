@@ -1,27 +1,25 @@
-#### Shiny UI ####
 shinyUI(
   navbarPage(
-    title = app_title, inverse = FALSE, theme = shinytheme("flatly"),
-    #### Main view ####
+    title = app_title, inverse = FALSE, theme = shinytheme("flatly"), collapsible = TRUE,
+    # Main view ----
     tabPanel("Main",
       icon = icon("tasks"),
       tags$head(
-        tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
+        #tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
         includeHTML("html/proxy-click-js.html"),
         includeCSS("css/tRakt.css")
         #includeHTML("html/piwik.html")
       ),
 
-      #### Episode information ####
-      ## Show this when the actionButton was not clicked yet, marking the 'inactive' state
-      # Used to be a clunky conditionalPanel, now just use shinyjs
+      # Intro text ----
       wellPanel(id = "intro-wellpanel", includeMarkdown("text/intro.md")),
-      ## Show this only when the actionButton was clicked, marking the 'active' state
 
+      # Show information ----
       hidden(
         wellPanel(id = "show_overview", htmlOutput("show_overview"))
       ),
-      
+
+      # Episode information ----
       hidden(
         hr(),
         tabsetPanel(
@@ -43,25 +41,16 @@ shinyUI(
 
       hr(),
 
-      #### Control panel ####
+      # Control panel ----
       wellPanel(
         fluidRow(
           column(
             8, offset = 2,
             h3(icon("search"), "Show Selection"),
-            # tagAppendAttributes(
-            #   textInput(
-            #     inputId = "show_searchbox",
-            #     label = "Search a new show",
-            #     value = "",
-            #     placeholder = "Something like \"the simpsons\" should do"
-            #   ),
-            #   `data-proxy-click` = "get_show"
-            # ),
             tagAppendAttributes(
               selectizeInput(
-                inputId = "shows_cached", label = "Select from cache or enter a new one to search",
-                choices = NULL, selected = NULL, 
+                inputId = "shows_cached", label = NULL,
+                choices = NULL, selected = NULL,
                 options = list(
                   create = TRUE,
                   placeholder = "Shows people lookup up before",
@@ -71,7 +60,11 @@ shinyUI(
               ),
               `data-proxy-click` = "get_show"
             ),
-            actionButton(inputId = "get_show", label = "PLOTERIZZLE", icon = icon("play"))
+            actionButton(
+              inputId = "get_show",
+              label = " Do the thing with the stuff",
+              width = "100%"
+            )
           )
         )
       ),
@@ -80,8 +73,8 @@ shinyUI(
         column(10, offset = 1, includeMarkdown("text/footer.md"))
       )
     ),
-    tabPanel(
-      title = "About", icon = icon("github"), href = "https://github.com/jemus42"
+    # Footer ----
+    footer = fluidRow(
     ),
     # Didn't know where else to put it, but this one's a biggie
     useShinyjs()
