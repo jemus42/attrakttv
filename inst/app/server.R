@@ -27,7 +27,7 @@ shinyServer(function(input, output, session) {
 
       if (show_id != "" & !is.null(show_id)) {
         updateSelectizeInput(
-          session, "shows_cached", selected = glue("cache:{show_tmp$show_id}")
+          session, "shows_cached", selected = glue("cache:{show_id}")
         )
         click("get_show")
       }
