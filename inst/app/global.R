@@ -11,7 +11,7 @@ library(tRakt)
 library(dplyr)
 library(glue)
 library(purrr)
-# library(cliapp)
+library(cliapp)
 library(attrakttv)
 
 
