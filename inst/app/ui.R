@@ -45,7 +45,7 @@ shinyUI(
       wellPanel(
         fluidRow(
           column(
-            8, offset = 2,
+            10, offset = 1,
             h3(icon("search"), "Show Selection"),
             tagAppendAttributes(
               selectizeInput(
@@ -53,8 +53,8 @@ shinyUI(
                 choices = NULL, selected = NULL,
                 options = list(
                   create = TRUE,
-                  placeholder = "Shows people lookup up before",
-                  maxOptions = 50,
+                  placeholder = "Pick a show – if it's not listed yet I'll look it up",
+                  maxOptions = 25,
                   maxItems = 1
                 )
               ),
@@ -67,10 +67,6 @@ shinyUI(
             )
           )
         )
-      ),
-      hr(),
-      fluidRow(
-        column(10, offset = 1, includeMarkdown("text/footer.md"))
       )
     ),
     # Footer ----

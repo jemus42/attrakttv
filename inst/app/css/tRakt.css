@@ -1,3 +1,13 @@
 .selectize-input {
     min-height: 50px;
 }
+
+.selectize-dropdown,
+.selectize-input,
+.selectize-input input {
+  line-height: 40px;
+}
+
+.item {
+  font-size: larger;
+}
