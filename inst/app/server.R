@@ -80,8 +80,6 @@ shinyServer(function(input, output, session) {
   # Show seasons reactive ----
   show_seasons <- eventReactive(input$get_show, {
 
-    cli_alert("first wat")
-
     current_show <- show_info()
     current_show_id <- current_show$show_id
 
@@ -96,19 +94,40 @@ shinyServer(function(input, output, session) {
   output$show_overview <- renderUI({
     show <- show_info()
     show_seasons <- show_seasons()
-    cli_alert("third wat")
+    cli_alert("renderUI: show_overview")
 
-    # cat("show_name renderUI", show$title, "\n")
+    # Early return for no result
+    if (is.null(show)) {
+      res <- fluidRow(
+        column(
+          10, offset = 1,
+          h2("Nothing found :("),
+          p("Try entering the show title, but like... try harder.")
+        )
+      )
+      return(res)
+    }
 
-    # cli_alert_info("show status {show$status}")
+    summary_table <- show %>%
+      select(rating, votes, episodes = aired_episodes, runtime, network, country) %>%
+      mutate(
+        rating = round(rating, 1),
+        country = countries$name[countries$code == country],
+        runtime = glue("{runtime}min")
+      ) %>%
+      rename_all(str_to_title) %>%
+      knitr::kable(format = "html") %>%
+      kableExtra::kable_styling() %>%
+      HTML()
 
-    if (!is.null(show)) {
-      tags$div(
-        h2(
-          a(href = glue("https://trakt.tv/shows/{show$slug}"), show$title),
-          tags$small(show$status)
-        ),
-        wellPanel(
+    # Otherwise, do a thing
+    tags$div(
+      h2(
+        a(href = glue("https://trakt.tv/shows/{show$slug}"),
+          glue("{show$title} ({show$year})")),
+        tags$small(show$status)
+      ),
+      wellPanel(
         fluidRow(
           column(
             2,
@@ -122,24 +141,12 @@ shinyServer(function(input, output, session) {
           ),
           column(
             10,
-            p(stringr::str_trunc(show$overview, 500, "right")),
-            p(
-              glue("Show rating: {round(show$rating, 1)} based on {show$votes} votes")
-            )
+            p(class = "lead", stringr::str_trunc(show$overview, 200, "right")),
+            summary_table
           )
         )
       )
-      )
-    } else {
-      fluidRow(
-        column(
-          10, offset = 1,
-          h2("Nothing found :("),
-          p("Try entering the show title, but like... try harder.")
-        )
-      )
-    }
-
+    )
   })
 
 
@@ -153,5 +160,19 @@ shinyServer(function(input, output, session) {
       hide(id = "intro-wellpanel")
       shinyjs::show(id = "show_overview")
     }
+  })
+
+  # User search logging?
+  observeEvent(input$get_show, {
+
+    if ((input$get_show %% 2) == 0) return(NULL)
+
+    res <- tibble(
+      time = as.numeric(lubridate::now(tzone = "UTC")),
+      request = input$shows_cached
+    )
+    cli_alert("Caching request")
+    check_cache_table("requests", res, cache_db_con)
+    RSQLite::dbWriteTable(cache_db_con, "requests", res, append = TRUE)
   })
 })
