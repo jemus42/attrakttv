@@ -103,7 +103,9 @@ shinyServer(function(input, output, session) {
           column(
             10,
             p(stringr::str_trunc(show$overview, 500, "right")),
-            p("Show rating:", show$rating)
+            p(
+              glue("Show rating: {round(show$rating, 1)} based on {show$votes} votes")
+            )
           )
         )
       )
