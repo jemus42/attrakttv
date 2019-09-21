@@ -93,3 +93,26 @@ days_ago <- function(days = 7L, unix = TRUE) {
 }
 
 
+#' Label user ratings
+#'
+#' @param x Numeric rating in [1, 10]. Will be rounded to te nearest integer.
+#'
+#' @return `character` of same length as `x`.
+#' @export
+rating_label <- function(x) {
+  x <- round(x)
+
+  dplyr::case_when(
+    x == 1  ~ "Weak Sauce :(",
+    x == 2  ~ "Terrible",
+    x == 3  ~ "Bad",
+    x == 4  ~ "Poor",
+    x == 5  ~ "Meh",
+    x == 6  ~ "Fair",
+    x == 7  ~ "Good",
+    x == 8  ~ "Great",
+    x == 9  ~ "Superb",
+    x == 10 ~ "Totally Ninja!",
+    TRUE ~ "??"
+  )
+}
