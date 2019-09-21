@@ -49,7 +49,10 @@ shinyServer(function(input, output, session) {
           select(show_id, show_poster),
         by = "show_id"
       ) %>%
-      collect()
+      collect() %>%
+      mutate(
+        show_poster = if_else(show_poster == "", "https://dump.jemu.name/poster-blank.jpg", show_poster)
+      )
   })
 
   # Show overview output ----
