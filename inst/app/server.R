@@ -117,7 +117,7 @@ shinyServer(function(input, output, session) {
       ) %>%
       rename_all(str_to_title) %>%
       knitr::kable(format = "html") %>%
-      kableExtra::kable_styling() %>%
+      kableExtra::kable_styling(bootstrap_options = c("responsive")) %>%
       HTML()
 
     # Otherwise, do a thing
