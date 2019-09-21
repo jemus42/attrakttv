@@ -1,4 +1,3 @@
-<script>
   $(function() {
     var $els = $("[data-proxy-click]");
       $.each(
@@ -14,4 +13,3 @@
       }
     );
   });
-</script>
