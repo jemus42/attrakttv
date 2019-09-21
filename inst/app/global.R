@@ -11,13 +11,13 @@ library(tRakt)
 library(dplyr)
 library(glue)
 library(purrr)
+library(stringr)
 library(cliapp)
 library(attrakttv)
 
 
 # Database connection -----
 cache_db_con <- cache_db()
-
 
 # on.exit(dbDisconnect(cache_db_con), add = TRUE)
 
