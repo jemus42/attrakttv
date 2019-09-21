@@ -21,7 +21,7 @@ cleanup_show_summary <- function(show) {
 
 #' Get a poster from fanart.tv
 #'
-#' @param tvdbid THe tvdb id.
+#' @param tvdbid The tvdb id.
 #' @param api_key Defaults to `Sys.getenv("fanarttv_api_key")`.
 #'
 #' @return A `character` with a poster url. If there's no result, return is `""` (`character(1)`)
@@ -47,15 +47,13 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   if (rlang::has_name(ret, "tvposter")) {
     url <- pluck(ret, "tvposter") %>%
       bind_rows() %>%
-      # filter(lang == "en") %>%
-      arrange(likes) %>%
+      arrange(desc(likes), lang) %>%
       head(1) %>%
       pull(url)
   } else if (rlang::has_name(ret, "seasonposter")) {
     url <- pluck(ret, "seasonposter") %>%
       bind_rows() %>%
-      # filter(lang == "en") %>%
-      arrange(likes) %>%
+      arrange(desc(likes), lang) %>%
       head(1) %>%
       pull(url)
   }
@@ -67,3 +65,27 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
     character(1)
   }
 }
+
+#' Datetime of last week
+#'
+#' @param days `integer [7]`: How many days ago? Must be an integer or coercible to an integer.
+#' @param unix `logical [TRUE]`: Return a unix timestamp (which the db understands).
+#'
+#' @return Either a `POSIXct` or `numeric`, see `unix`.
+#' @export
+#' @importFrom lubridate now days
+#' @examples
+#' days_ago(1)
+#' days_ago(unix = FALSE)
+days_ago <- function(days = 7L, unix = TRUE) {
+  days <- as.integer(days)
+  res <- lubridate::now(tzone = "UTC") - lubridate::days(days)
+
+  if (unix) {
+    res <- as.numeric(res)
+  }
+
+  res
+}
+
+

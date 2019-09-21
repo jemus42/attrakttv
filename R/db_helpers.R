@@ -186,6 +186,26 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
   }
 }
 
+cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
+
+  if (!is_already_cached("posters", show_id, cache_db_con)) {
+
+    tvdbid <- tbl(cache_db_con, "shows") %>%
+      collect() %>%
+      filter(show_id == "60356") %>%
+      pull(tvdb)
+
+    res <- tibble(
+      show_id = show_id,
+      show_poster = get_fanart_poster(tvdbid = tvdbid)
+    )
+
+    cache_add_data("posters", ., cache_db_con = cache_db_con)
+
+  }
+
+}
+
 #' Add data to some db table
 #'
 #' @inheritParams cache_add_show
@@ -241,7 +261,7 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
 
   # Delete if already cached and replace = TRUE
   if (already_cached & replace) {
-    if (getOption("caching_debug")) {
+    if (getOption("caching_debug", default = FALSE)) {
       cli_alert_info("Deleting and replacing show '{current_id}' at '{table_name}'")
     }
 
@@ -259,11 +279,56 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
   }
 
   if (!already_cached) {
-    if (getOption("caching_debug")) cli_alert_success("Not in cache, writing")
+    if (getOption("caching_debug", default = FALSE)) {
+      cli_alert_success("'{current_id}' not in cache, writing to '{table_name}'")
+    }
+
     dbWriteTable(cache_db_con, table_name, new_data, append = TRUE)
   }
 
-  if (already_cached & !replace & getOption("caching_debug")) {
+  if (already_cached & !replace & getOption("caching_debug", default = FALSE)) {
     cli_alert_info("Not replacing '{current_id}' data already in '{table_name}'")
   }
+}
+
+
+#' Drop individual rows from a table
+#'
+#' @inheritParams cache_add_show
+#' @return Nothing
+#' @export
+cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
+  query <- glue_sql("
+      DELETE FROM {table_name}
+      WHERE ({`where_id`} IN ({is_id*}));
+    ", .con = cache_db_con)
+
+  res <- dbSendStatement(cache_db_con, query)
+  # dbHasCompleted(res)
+  # dbGetRowsAffected(res)
+  dbClearResult(res)
+}
+
+#' Drop old rows
+#'
+#' @inheritParams cache_add_show
+#' @param threshold_days `integer [7]`: Drop records older than that.
+#'
+#' @return Nothing
+#' @export
+#' @importFrom dplyr tbl filter pull
+cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
+
+  cutoff_time <- days_ago(threshold_days)
+
+  to_delete <- tbl(cache_db_con, table_name) %>%
+    filter(cache_date < cutoff_time) %>%
+    pull(show_id)
+
+  cache_delete_rows(
+    table_name = table_name,
+    where_id = "show_id",
+    is_id = to_delete,
+    cache_db_con = cache_db_con
+  )
 }

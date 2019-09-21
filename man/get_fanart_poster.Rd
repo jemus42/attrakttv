@@ -7,7 +7,7 @@
 get_fanart_poster(tvdbid, api_key = Sys.getenv("fanarttv_api_key"))
 }
 \arguments{
-\item{tvdbid}{THe tvdb id.}
+\item{tvdbid}{The tvdb id.}
 
 \item{api_key}{Defaults to \code{Sys.getenv("fanarttv_api_key")}.}
 }
