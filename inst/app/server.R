@@ -52,16 +52,15 @@ shinyServer(function(input, output, session) {
 
     if (is.null(input_show)) {
       return(NULL)
-    } else {
-      show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
     }
+
+    show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
+    updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
 
     if (!is_already_cached("posters", input_show, cache_db_con)) {
       tibble(show_id = input_show, show_poster = get_fanart_poster(pull(show_tmp, tvdb))) %>%
         cache_add_data("posters", ., cache_db_con = cache_db_con)
     }
-
-    updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
 
     show_tmp %>%
       left_join(

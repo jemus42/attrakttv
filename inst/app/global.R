@@ -4,7 +4,6 @@
 
 library(shiny)
 library(shinyjs)
-library(shinythemes)
 # library(DT)
 # library(plotly)
 library(tRakt)

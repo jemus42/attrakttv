@@ -1,6 +1,8 @@
 shinyUI(
   navbarPage(
-    title = app_title, inverse = FALSE, theme = shinytheme("flatly"), collapsible = TRUE,
+    title = app_title,
+    theme = shinythemes::shinytheme("flatly"),
+    collapsible = TRUE,
     # Main view ----
     tabPanel("Main",
       icon = icon("tasks"),
