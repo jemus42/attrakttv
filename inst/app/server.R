@@ -58,7 +58,10 @@ shinyServer(function(input, output, session) {
     updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
 
     if (!is_already_cached("posters", input_show, cache_db_con)) {
-      tibble(show_id = input_show, show_poster = get_fanart_poster(pull(show_tmp, tvdb))) %>%
+      tibble(
+        show_id = input_show,
+        show_poster = get_fanart_poster(pull(show_tmp, tvdb))
+      ) %>%
         cache_add_data("posters", ., cache_db_con = cache_db_con)
     }
 
@@ -70,13 +73,31 @@ shinyServer(function(input, output, session) {
       ) %>%
       collect() %>%
       mutate(
-        show_poster = if_else(show_poster == "", "https://dump.jemu.name/poster-blank.jpg", show_poster)
+        show_poster = if_else(show_poster == "", "img/poster-blank.jpg", show_poster)
       )
+  })
+
+  # Show seasons reactive ----
+  show_seasons <- eventReactive(input$get_show, {
+
+    cli_alert("first wat")
+
+    current_show <- show_info()
+    current_show_id <- current_show$show_id
+
+    current_show_seasons <- cache_seasons_tbl %>%
+      filter(show_id == current_show_id) %>%
+      collect()
+
+    current_show_seasons
   })
 
   # Show overview output ----
   output$show_overview <- renderUI({
     show <- show_info()
+    show_seasons <- show_seasons()
+    cli_alert("third wat")
+
     # cat("show_name renderUI", show$title, "\n")
 
     # cli_alert_info("show status {show$status}")
@@ -120,6 +141,7 @@ shinyServer(function(input, output, session) {
     }
 
   })
+
 
 
   # get_show observer ----
