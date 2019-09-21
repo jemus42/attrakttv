@@ -8,6 +8,14 @@
 \description{
 What the package does (one paragraph).
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/jemus42/attrakttv}
+  \item Report bugs at \url{https://github.com/jemus42/attrakttv/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Lukas Burk \email{lukas@tadaa-data.de} (0000-0001-7528-3795)
 

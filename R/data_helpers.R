@@ -42,9 +42,9 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   query <- paste0("https://webservice.fanart.tv/v3/tv/", tvdbid, "?api_key=", api_key)
   ret <- content(GET(query))
 
-  # Try tvposter first
-  url <- ret[["tvposter"]][[1]][["url"]]
+  url <- NULL
 
+  # Try tvposter first
   if (rlang::has_name(ret, "tvposter")) {
     url <- pluck(ret, "tvposter") %>%
       bind_rows() %>%
