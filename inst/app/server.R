@@ -5,7 +5,7 @@ shinyServer(function(input, output, session) {
   observe({
     cached_shows <- cache_shows_tbl %>%
       collect() %>%
-      arrange(desc(cache_date))
+      arrange(desc(rating))
 
     show_ids <- paste0("cache:", cached_shows$show_id)
     names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
@@ -13,6 +13,26 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(
       session, "shows_cached", choices = show_ids, selected = sample(show_ids, 1)
     )
+  })
+
+  observe({
+    #query <- parseQueryString(session$clientData$url_search)
+
+    query <- getQueryString(session)
+    query_slug <- query[['show']] %>%
+      str_remove_all("'|\"")
+
+    if (!is.null(query_slug)) {
+      show_tmp <- cache_shows_tbl %>% filter(slug == query_slug) %>% collect()
+      show_id <- show_tmp$show_id
+
+      if (show_id != "" & !is.null(show_id)) {
+        updateSelectizeInput(
+          session, "shows_cached", selected = glue("cache:{show_tmp$show_id}")
+        )
+        click("get_show")
+      }
+    }
   })
 
   # Show info reactiveEvent ----
@@ -42,6 +62,8 @@ shinyServer(function(input, output, session) {
       tibble(show_id = input_show, show_poster = get_fanart_poster(pull(show_tmp, tvdb))) %>%
         cache_add_data("posters", ., cache_db_con = cache_db_con)
     }
+
+    updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
 
     show_tmp %>%
       left_join(
