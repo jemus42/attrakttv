@@ -8,8 +8,8 @@ shinyUI(
       icon = icon("tasks"),
       tags$head(
         #tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
-        includeHTML("html/proxy-click-js.html"),
-        includeCSS("css/tRakt.css")
+        includeHTML("www/proxy-click-js.html"),
+        includeCSS("www/css/tRakt.css")
         #includeHTML("html/piwik.html")
       ),
 
