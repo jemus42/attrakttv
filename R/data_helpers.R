@@ -39,7 +39,7 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   }
 
   query <- paste0("https://webservice.fanart.tv/v3/tv/", tvdbid, "?api_key=", api_key)
-  ret <- content(GET(query))
+  ret <- httr::content(httr::GET(query))
 
   url <- NULL
 
@@ -47,20 +47,20 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   if (rlang::has_name(ret, "tvposter")) {
     url <- pluck(ret, "tvposter") %>%
       bind_rows() %>%
-      filter(lang == "en") %>%
+      # filter(lang == "en") %>%
       arrange(likes) %>%
       head(1) %>%
       pull(url)
   } else if (rlang::has_name(ret, "seasonposter")) {
     url <- pluck(ret, "seasonposter") %>%
       bind_rows() %>%
-      filter(lang == "en") %>%
+      # filter(lang == "en") %>%
       arrange(likes) %>%
       head(1) %>%
       pull(url)
   }
 
-  if (is.character(url)) {
+  if (is.character(url) & !(identical(url, character(0)))) {
     url
   } else {
     cliapp::cli_alert_danger("No fanart: {ret$name} ({tvdbid})")
