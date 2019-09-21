@@ -7,13 +7,12 @@
 #' See [runApp][shiny::runApp].
 #' @export
 #' @import shiny
-#' @import shinythemes
 #' @examples
 #' \dontrun{
-#' attrakttv()
+#' attrakttv_app()
 #' }
-attrakttv <- function(display.mode = "auto",
-                      launch.browser = getOption("shiny.launch.browser", interactive())) {
+attrakttv_app <- function(
+  display.mode = "auto", launch.browser = getOption("shiny.launch.browser", interactive())) {
   appDir <- system.file("app", package = "attrakttv")
   if (appDir == "") {
     stop("Could not find shiny directory. Try re-installing `attrakttv`.", call. = FALSE)

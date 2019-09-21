@@ -218,6 +218,7 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #' Add data to some db table
 #'
 #' @inheritParams cache_add_show
+#' @param table_name Name of the db table to add data to.
 #' @param new_data The new data to add.
 #'
 #' @return Nothing
@@ -228,6 +229,7 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #' @importFrom rlang has_name
 #' @importFrom lubridate now
 #' @importFrom glue glue_sql
+#' @importFrom RSQLite dbSendStatement dbClearResult dbWriteTable
 #' @examples
 #' \dontrun{
 #' TRUE
@@ -303,8 +305,12 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
 
 #' Drop individual rows from a table
 #'
-#' @inheritParams cache_add_show
+#' @inheritParams cache_add_data
+#' @param where_id Column in table to use for matching.
+#' @param is_id Value of `where_id` to delete.
 #' @return Nothing
+#' @importFrom RSQLite dbSendStatement dbClearResult
+#' @importFrom glue glue_sql
 #' @export
 cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
   query <- glue_sql("
@@ -320,7 +326,7 @@ cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
 
 #' Drop old rows
 #'
-#' @inheritParams cache_add_show
+#' @inheritParams cache_add_data
 #' @param threshold_days `integer [7]`: Drop records older than that.
 #'
 #' @return Nothing

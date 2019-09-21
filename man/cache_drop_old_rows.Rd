@@ -7,6 +7,8 @@
 cache_drop_old_rows(table_name, threshold_days = 7, cache_db_con)
 }
 \arguments{
+\item{table_name}{Name of the db table to add data to.}
+
 \item{threshold_days}{\code{integer [7]}: Drop records older than that.}
 
 \item{cache_db_con}{A connection, see \link{cache_db}}

@@ -17,6 +17,8 @@ a \link[tibble:tibble-package]{tibble}
 Prepare a show info object for the database
 }
 \examples{
-tRakt::trakt.search("Futurama", type = "shows") \%>\%
+\dontrun{
+tRakt::trakt.search("Futurama", type = "show") \%>\%
   cleanup_show_summary()
+}
 }

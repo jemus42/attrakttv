@@ -7,6 +7,8 @@
 cache_add_data(table_name, new_data, replace = FALSE, cache_db_con)
 }
 \arguments{
+\item{table_name}{Name of the db table to add data to.}
+
 \item{new_data}{The new data to add.}
 
 \item{replace}{\code{logical [FALSE]} Delete (if exists) & replace data?}

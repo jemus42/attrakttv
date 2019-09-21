@@ -8,8 +8,11 @@
 #' @importFrom dplyr mutate select matches rename
 #' @importFrom purrr map_chr
 #' @examples
-#' tRakt::trakt.search("Futurama", type = "shows") %>%
+#' \dontrun{
+#' tRakt::trakt.search("Futurama", type = "show") %>%
 #'   cleanup_show_summary()
+#' }
+
 cleanup_show_summary <- function(show) {
   show %>%
     select(-matches("^type$|^score$|^avail.*translations$")) %>%
@@ -29,6 +32,7 @@ cleanup_show_summary <- function(show) {
 #' @importFrom httr GET content
 #' @importFrom dplyr bind_rows filter arrange pull
 #' @importFrom purrr pluck
+#' @importFrom utils head
 #' @examples
 #' \dontrun{
 #' get_fanart_poster()

@@ -7,6 +7,12 @@
 cache_delete_rows(table_name, where_id, is_id, cache_db_con)
 }
 \arguments{
+\item{table_name}{Name of the db table to add data to.}
+
+\item{where_id}{Column in table to use for matching.}
+
+\item{is_id}{Value of \code{where_id} to delete.}
+
 \item{cache_db_con}{A connection, see \link{cache_db}}
 }
 \value{
