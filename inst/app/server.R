@@ -19,8 +19,7 @@ shinyServer(function(input, output, session) {
     #query <- parseQueryString(session$clientData$url_search)
 
     query <- getQueryString(session)
-    query_slug <- query[['show']] %>%
-      str_remove_all("'|\"")
+    query_slug <- query[['show']]
 
     if (!is.null(query_slug)) {
       show_tmp <- cache_shows_tbl %>% filter(slug == query_slug) %>% collect()
