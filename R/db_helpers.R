@@ -88,39 +88,31 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #' TRUE
 #' }
 cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
-
   if (!is.null(show_query)) {
-
     ret_show_id <- cache_add_show_query(show_query = show_query, replace = replace, cache_db_con)
 
     if (is.null(ret_show_id)) {
       return(NULL)
     }
-
   } else if (!is.null(show_id)) {
-
     cliapp::cli_alert_info("{show_id}???")
     show_id <- as.character(show_id)
     already_cached <- is_already_cached("shows", show_id, cache_db_con)
 
     if ((already_cached & replace) | (!already_cached)) {
-
       ret <- trakt.shows.summary(show_id, extended = "full")
       ret <- cleanup_show_summary(ret)
       cache_add_data("shows", ret, replace, cache_db_con)
 
       ret_show_id <- ret$show_id
-
     } else if (getOption("caching_debug")) {
       cli_alert_info("Show '{show_id}' already cached, not downloading")
     }
-
   } else {
     stop("Gotta pick one yo")
   }
 
   invisible(ret_show_id)
-
 }
 
 
@@ -133,21 +125,21 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
 #' @importFrom tRakt trakt.search
 #' @keywords internal
 cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
-
   ret <- trakt.search(
-    show_query, type = "show", n_results = 1, extended = "full"
+    show_query,
+    type = "show", n_results = 1, extended = "full"
   )
 
-  if (identical(ret, tibble())) return(NULL)
+  if (identical(ret, tibble())) {
+    return(NULL)
+  }
 
   ret <- cleanup_show_summary(ret)
 
   already_cached <- is_already_cached("shows", ret$show_id, cache_db_con)
 
   if ((already_cached & replace) | (!already_cached)) {
-
     cache_add_data("shows", ret, replace = replace, cache_db_con)
-
   } else if (getOption("caching_debug")) {
     cli_alert_info("Show '{ret$show_id}' already cached, not updating")
   }
@@ -169,7 +161,6 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
 #' TRUE
 #' }
 cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
-
   show_id <- as.character(show_id)
   already_cached <- is_already_cached("episodes", show_id, cache_db_con)
 
@@ -250,7 +241,6 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
 
   # Delete if already cached and replace = TRUE
   if (already_cached & replace) {
-
     if (getOption("caching_debug")) {
       cli_alert_info("Deleting and replacing show '{current_id}' at '{table_name}'")
     }
@@ -277,4 +267,3 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
     cli_alert_info("Not replacing '{current_id}' data already in '{table_name}'")
   }
 }
-

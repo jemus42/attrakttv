@@ -34,7 +34,6 @@ cleanup_show_summary <- function(show) {
 #' get_fanart_poster()
 #' }
 get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) {
-
   if (api_key == "") {
     stop("Need to set a fanart.tv API key. Set env variable 'fanarttv_api_key'")
   }

@@ -9,10 +9,10 @@ attrakttv(display.mode = "auto",
 }
 \arguments{
 \item{display.mode}{\code{auto} by default, can also be \code{showcase}.
-See \link[shiny]{runApp}.}
+See \link[shiny:runApp]{runApp}.}
 
 \item{launch.browser}{Boolean, set \code{TRUE} to open the app in the browser.
-See \link[shiny]{runApp}.}
+See \link[shiny:runApp]{runApp}.}
 }
 \description{
 This function starts the attrakttv shiny app.
