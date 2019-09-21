@@ -15,9 +15,8 @@ shinyServer(function(input, output, session) {
     )
   })
 
+  # Query string observer ----
   observe({
-    #query <- parseQueryString(session$clientData$url_search)
-
     query <- getQueryString(session)
     query_slug <- query[['show']]
 
@@ -25,7 +24,7 @@ shinyServer(function(input, output, session) {
       show_tmp <- cache_shows_tbl %>% filter(slug == query_slug) %>% collect()
       show_id <- show_tmp$show_id
 
-      if (show_id != "" & !is.null(show_id)) {
+      if (!identical(show_id, character(1)) & !is.null(show_id)) {
         updateSelectizeInput(
           session, "shows_cached", selected = glue("cache:{show_id}")
         )
@@ -46,7 +45,7 @@ shinyServer(function(input, output, session) {
     } else {
       input_show <- input$shows_cached %>%
         stringr::str_remove(., "^cache:") %>%
-        cache_add_show()
+        cache_add_show(cache_db_con = cache_db_con)
 
       # cli_alert_info("input_show after caching attempt is {input_show}")
     }

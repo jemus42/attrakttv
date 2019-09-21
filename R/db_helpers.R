@@ -89,15 +89,19 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #' }
 cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
   if (!is.null(show_query)) {
-    ret_show_id <- cache_add_show_query(show_query = show_query, replace = replace, cache_db_con)
+    ret_show_id <- cache_add_show_query(
+      show_query = show_query,
+      replace = replace,
+      cache_db_con = cache_db_con
+    )
 
     if (is.null(ret_show_id)) {
       return(NULL)
     }
   } else if (!is.null(show_id)) {
-    cliapp::cli_alert_info("{show_id}???")
+    cli_alert_info("{show_id}???")
     show_id <- as.character(show_id)
-    already_cached <- is_already_cached("shows", show_id, cache_db_con)
+    already_cached <- is_already_cached("shows", show_id, cache_db_con = cache_db_con)
 
     if ((already_cached & replace) | (!already_cached)) {
       ret <- trakt.shows.summary(show_id, extended = "full")
@@ -136,10 +140,15 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
 
   ret <- cleanup_show_summary(ret)
 
-  already_cached <- is_already_cached("shows", ret$show_id, cache_db_con)
+  already_cached <- is_already_cached("shows", ret$show_id, cache_db_con = cache_db_con)
 
   if ((already_cached & replace) | (!already_cached)) {
-    cache_add_data("shows", ret, replace = replace, cache_db_con)
+    cache_add_data(
+      table_name = "shows",
+      new_data = ret,
+      replace = replace,
+      cache_db_con = cache_db_con
+    )
   } else if (getOption("caching_debug")) {
     cli_alert_info("Show '{ret$show_id}' already cached, not updating")
   }
