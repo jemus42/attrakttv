@@ -126,7 +126,7 @@ shinyServer(function(input, output, session) {
       h2(
         a(href = glue("https://trakt.tv/shows/{show$slug}"),
           glue("{show$title} ({show$year})")),
-        tags$small(show$status)
+        tags$small(stringr::str_to_title(show$status))
       ),
       wellPanel(
         fluidRow(

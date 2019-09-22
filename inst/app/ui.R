@@ -18,7 +18,7 @@ shinyUI(
 
       # Show information ----
       hidden(
-        wellPanel(id = "show_overview", htmlOutput("show_overview"))
+        div(id = "show_overview", htmlOutput("show_overview"))
       ),
 
       # Episode information ----
