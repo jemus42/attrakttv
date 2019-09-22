@@ -66,10 +66,9 @@ shinyServer(function(input, output, session) {
       return(NULL)
     }
 
-    cli_alert_warning("input_show {input_show}")
+    # cli_alert_warning("input_show {input_show}")
     show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
-
-    cli_alert_info("pull(show_tmp, slug) {pull(show_tmp, slug)}")
+    # cli_alert_info("pull(show_tmp, slug) {pull(show_tmp, slug)}")
 
     if (!identical(query_slug, pull(show_tmp, slug))) {
       updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
@@ -113,7 +112,7 @@ shinyServer(function(input, output, session) {
     input$shows_cached
     show <- isolate(show_info())
     # show_seasons <- show_seasons()
-    cli_alert("renderUI: show_overview")
+    # cli_alert("renderUI: show_overview")
 
     # Early return for no result
     if (is.null(show)) {
@@ -128,20 +127,35 @@ shinyServer(function(input, output, session) {
     }
 
     summary_table <- show %>%
-      select(rating, votes, episodes = aired_episodes, runtime, network, country) %>%
+      select(rating, votes, episodes = aired_episodes, runtime) %>%
       mutate(
         rating = round(rating, 1),
-        country = country_label(country),
-        runtime = glue("{runtime}min")
+        runtime = glue("{runtime}min"),
+        rating = glue("{rating} - “{rating_label(rating)}”")
       ) %>%
       mutate_if(is.na, ~ "N/A") %>%
       rename_all(str_to_title) %>%
-      knitr::kable(format = "html") %>%
-      kableExtra::kable_styling(
-        full_width = FALSE, font_size = 18, position = "left",
+      kable(format = "html", escape = FALSE) %>%
+      kable_styling(
+        full_width = FALSE, font_size = 18, position = "center",
         bootstrap_options = c("responsive")
       ) %>%
       HTML()
+
+    # links_table <- show %>%
+    #   select(slug, tvdb, imdb, tmdb) %>%
+    #   transmute(
+    #     trakt.tv = glue("https://trakt.tv/shows/{slug}"),
+    #     tvdb = glue("https://www.thetvdb.com/?id={tvdb}&tab=series"),
+    #     IMDb = glue("https://www.imdb.com/title/{imdb}/"),
+    #     TMDB = glue("https://www.themoviedb.org/tv/{tmdb}")
+    #   ) %>%
+    #   gather(Site, url) %>%
+    #   transmute(` ` = cell_spec(Site, link = url)) %>%
+    #   t() %>%
+    #   kable(escape = FALSE) %>%
+    #   kable_styling(full_width = FALSE) %>%
+    #   HTML()
 
     # Otherwise, do a thing
     tags$div(
@@ -149,7 +163,11 @@ shinyServer(function(input, output, session) {
         a(href = glue("https://trakt.tv/shows/{show$slug}"),
           glue("{show$title} ({show$year})")),
         br(),
-        tags$small(stringr::str_to_title(show$status))
+        tags$small(
+          HTML(glue("{bullet} {country_label(show$country)} {bullet}
+               {language_label(show$language)} {bullet}
+               {show$network} {bullet} {str_to_title(show$status)} {bullet}"))
+        )
       ),
       wellPanel(
         fluidRow(
@@ -193,7 +211,7 @@ shinyServer(function(input, output, session) {
       time = as.numeric(lubridate::now(tzone = "UTC")),
       request = input$shows_cached
     )
-    cli_alert("Caching request")
+    cli_alert("Logging request")
     check_cache_table("requests", res, cache_db_con)
     RSQLite::dbWriteTable(cache_db_con, "requests", res, append = TRUE)
   })

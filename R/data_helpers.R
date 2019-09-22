@@ -135,6 +135,24 @@ country_label <- function(x) {
 
 }
 
+#' Label language codes
+#'
+#' @param x A language code like `"en"`
+#'
+#' @return `character` of same length as `x`
+#' @export
+#' @examples
+#' language_label(c("us", "de", "lwaflaf"))
+language_label <- function(x) {
+
+  language_codes <- tRakt::languages$name
+  names(language_codes) <- tRakt::languages$code
+  res <- language_codes[x]
+  res[is.na(res)] <- "N/A"
+  res
+
+}
+
 
 #' Convert back and forth between slugs and show_ids
 #'

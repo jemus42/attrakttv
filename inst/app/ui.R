@@ -21,7 +21,7 @@ shinyUI(
         fluidRow(
           column(
             10, offset = 1,
-            h3(icon("search"), "Show Selection"),
+            #h3(icon("search"), "Show Selection"),
             tagAppendAttributes(
               selectizeInput(
                 inputId = "shows_cached", label = NULL,

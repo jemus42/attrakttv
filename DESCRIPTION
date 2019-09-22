@@ -28,7 +28,8 @@ Imports:
     stringr,
     tibble,
     tRakt (>= 0.14.0.9000),
-    pool
+    pool,
+    kableExtra
 Remotes: 
     jemus42/tRakt
 Encoding: UTF-8
