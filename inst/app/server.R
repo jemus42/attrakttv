@@ -20,7 +20,7 @@ shinyServer(function(input, output, session) {
   # })
 
   observeEvent(input$shows_cached, ignoreNULL = TRUE, ignoreInit = TRUE, {
-    click("get_show")
+    if (input$shows_cached != "") click("get_show")
   })
 
   # Query string observer ----

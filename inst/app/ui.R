@@ -16,33 +16,6 @@ shinyUI(
       # Intro text ----
       wellPanel(id = "intro-wellpanel", includeMarkdown("text/intro.md")),
 
-      # Show information ----
-      hidden(
-        div(id = "show_overview", htmlOutput("show_overview"))
-      ),
-
-      # Episode information ----
-      hidden(
-        hr(),
-        tabsetPanel(
-          id = "episode_info", selected = "tab_plot"#,
-          # tabPanel(
-          #   title = "Plot", value = "tab_plot", icon = icon("bar-chart-o"),
-          #   plotlyOutput(outputId = "episodeplot")
-          # ),
-          # tabPanel(
-          #   title = "Episodes", value = "tab_data_episodes", icon = icon("table"),
-          #   DT::dataTableOutput(outputId = "table_episodes")
-          # ),
-          # tabPanel(
-          #   title = "Seasons", value = "tab_data_seasons", icon = icon("table"),
-          #   DT::dataTableOutput(outputId = "table_seasons")
-          # )
-        )
-      ),
-
-      hr(),
-
       # Control panel ----
       wellPanel(
         fluidRow(
@@ -69,7 +42,33 @@ shinyUI(
             ))
           )
         )
-      )
+      ),
+      # Show information ----
+      hidden(
+        div(id = "show_overview", htmlOutput("show_overview"))
+      ),
+
+      # Episode information ----
+      hidden(
+        hr(),
+        tabsetPanel(
+          id = "episode_info", selected = "tab_plot"#,
+          # tabPanel(
+          #   title = "Plot", value = "tab_plot", icon = icon("bar-chart-o"),
+          #   plotlyOutput(outputId = "episodeplot")
+          # ),
+          # tabPanel(
+          #   title = "Episodes", value = "tab_data_episodes", icon = icon("table"),
+          #   DT::dataTableOutput(outputId = "table_episodes")
+          # ),
+          # tabPanel(
+          #   title = "Seasons", value = "tab_data_seasons", icon = icon("table"),
+          #   DT::dataTableOutput(outputId = "table_seasons")
+          # )
+        )
+      ),
+
+      hr()
     ),
     # Footer ----
     footer = fluidRow(
