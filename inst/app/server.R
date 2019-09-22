@@ -45,26 +45,35 @@ shinyServer(function(input, output, session) {
   # Show info reactiveEvent ----
   show_info <- eventReactive(input$shows_cached, label = "show_info()", {
 
+    query_slug <- getQueryString(session)[['show']] %||% ""
+    cli_alert_info("query_slug {query_slug}")
+
     if (stringr::str_detect(input$shows_cached, "^cache:")) {
       # cli_alert_info("cached show detected {input$shows_cached}")
 
       input_show <- input$shows_cached %>%
         stringr::str_extract(., "\\d+")
 
-    } else {
+    } else if (input$shows_cached != "") {
       input_show <- input$shows_cached %>%
         stringr::str_remove(., "^cache:") %>%
         cache_add_show(cache_db_con = cache_db_con)
 
       # cli_alert_info("input_show after caching attempt is {input_show}")
-    }
-
-    if (is.null(input_show)) {
+    } else if (!is.null(query_slug)) {
+      input_show <- convert_ids(slug = query_slug, cache_db_con = cache_db_con)
+    } else {
       return(NULL)
     }
 
+    cli_alert_warning("input_show {input_show}")
     show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
-    updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
+
+    cli_alert_info("pull(show_tmp, slug) {pull(show_tmp, slug)}")
+
+    if (!identical(query_slug, pull(show_tmp, slug))) {
+      updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
+    }
 
     if (!is_already_cached("posters", input_show, cache_db_con)) {
       tibble(
@@ -165,7 +174,7 @@ shinyServer(function(input, output, session) {
   })
 
   # get_show observer ----
-  observeEvent(input$get_show, autoDestroy = 1, label = "Hide Intro", {
+  observeEvent(input$get_show, once = TRUE, label = "Hide Intro", {
     # cat(input$shows_cached, "\n")
 
     if (input$get_show > 0) {
@@ -175,10 +184,10 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # User search logging?
+  # Request log ----
   observeEvent(input$get_show, label = "Log requests", {
 
-    # if ((input$get_show %% 2) == 0) return(NULL)
+    if (input$shows_cached == "") return(NULL)
 
     res <- tibble(
       time = as.numeric(lubridate::now(tzone = "UTC")),
