@@ -15,3 +15,6 @@ country_label(x)
 \description{
 Label country codes
 }
+\examples{
+country_label(c("us", "de", "lwaflaf"))
+}

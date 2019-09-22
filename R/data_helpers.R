@@ -123,16 +123,14 @@ rating_label <- function(x) {
 #'
 #' @return `character` of same length as `x`
 #' @export
-#' @importFrom purrr map_chr
-#' @importFrom dplyr pull filter
+#' @examples
+#' country_label(c("us", "de", "lwaflaf"))
 country_label <- function(x) {
-  map_chr(x, ~{
-    res <- countries %>%
-      filter(code == .x) %>%
-      pull(name)
 
-    if (identical(res, character(0))) res <- "N/A"
-    res
-  })
+  country_codes <- tRakt::countries$name
+  names(country_codes) <- tRakt::countries$code
+  res <- country_codes[x]
+  res[is.na(res)] <- "N/A"
+  res
+
 }
-
