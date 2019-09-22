@@ -5,7 +5,8 @@ shinyServer(function(input, output, session) {
   observe({
     cached_shows <- cache_shows_tbl %>%
       collect() %>%
-      arrange(desc(rating))
+      filter(rating >= 7, votes >= 1000) %>%
+      sample_frac(1)
 
     show_ids <- paste0("cache:", cached_shows$show_id)
     names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
@@ -129,6 +130,7 @@ shinyServer(function(input, output, session) {
       h2(
         a(href = glue("https://trakt.tv/shows/{show$slug}"),
           glue("{show$title} ({show$year})")),
+        br(),
         tags$small(stringr::str_to_title(show$status))
       ),
       wellPanel(
