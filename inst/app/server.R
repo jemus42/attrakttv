@@ -5,22 +5,27 @@
 shinyServer(function(input, output, session) {
 
   # Caching observer ----
-  observe(label = "Cache initializer", {
-    cached_shows <- cache_shows_tbl %>%
-      collect() %>%
-      filter(rating >= 7, votes >= 1000) %>%
-      sample_frac(1)
+  # observe(label = "Cache initializer", {
+  #   cached_shows <- cache_shows_tbl %>%
+  #     collect() %>%
+  #     filter(rating >= 7, votes >= 1000) %>%
+  #     sample_frac(1)
+  #
+  #   show_ids <- paste0("cache:", cached_shows$show_id)
+  #   names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
+  #
+  #   updateSelectizeInput(
+  #     session, "shows_cached", choices = show_ids, selected = sample(show_ids, 1)
+  #   )
+  # })
 
-    show_ids <- paste0("cache:", cached_shows$show_id)
-    names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
-
-    updateSelectizeInput(
-      session, "shows_cached", choices = show_ids, selected = sample(show_ids, 1)
-    )
+  observeEvent(input$shows_cached, ignoreNULL = TRUE, ignoreInit = TRUE, {
+    click("get_show")
   })
 
   # Query string observer ----
   observe(label = "Query string updater", {
+
     query <- getQueryString(session)
     query_slug <- query[['show']]
 
@@ -32,13 +37,13 @@ shinyServer(function(input, output, session) {
         updateSelectizeInput(
           session, "shows_cached", selected = glue("cache:{show_id}")
         )
-        click("get_show")
+        # click("get_show")
       }
     }
   })
 
   # Show info reactiveEvent ----
-  show_info <- eventReactive(input$get_show, label = "show_info()", {
+  show_info <- eventReactive(input$shows_cached, label = "show_info()", {
 
     if (stringr::str_detect(input$shows_cached, "^cache:")) {
       # cli_alert_info("cached show detected {input$shows_cached}")
@@ -96,8 +101,9 @@ shinyServer(function(input, output, session) {
 
   # Show overview output ----
   output$show_overview <- renderUI({
-    show <- show_info()
-    show_seasons <- show_seasons()
+    input$shows_cached
+    show <- isolate(show_info())
+    # show_seasons <- show_seasons()
     cli_alert("renderUI: show_overview")
 
     # Early return for no result
@@ -172,7 +178,7 @@ shinyServer(function(input, output, session) {
   # User search logging?
   observeEvent(input$get_show, label = "Log requests", {
 
-    if ((input$get_show %% 2) == 0) return(NULL)
+    # if ((input$get_show %% 2) == 0) return(NULL)
 
     res <- tibble(
       time = as.numeric(lubridate::now(tzone = "UTC")),

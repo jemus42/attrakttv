@@ -34,6 +34,15 @@ app_title <- glue("attrakttv v{desc::desc_get_version()}")
 # mu     <- HTML("&#956;")
 # sigma  <- HTML("&#963;")
 
+cached_shows <- cache_shows_tbl %>%
+  collect() %>%
+  filter(rating >= 7, votes >= 1000) %>%
+  sample_frac(1)
+
+show_ids <- paste0("cache:", cached_shows$show_id)
+names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
+
+
 # Helper functions ----
 
 # Show status

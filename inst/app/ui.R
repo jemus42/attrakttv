@@ -52,7 +52,7 @@ shinyUI(
             tagAppendAttributes(
               selectizeInput(
                 inputId = "shows_cached", label = NULL,
-                choices = NULL, selected = NULL,
+                choices = show_ids, selected = NULL,
                 options = list(
                   create = TRUE,
                   placeholder = "Pick a show – if it's not listed yet I'll look it up",
@@ -62,11 +62,11 @@ shinyUI(
               ),
               `data-proxy-click` = "get_show"
             ),
-            actionButton(
+            hidden(actionButton(
               inputId = "get_show",
               label = " Do the thing with the stuff",
               width = "100%"
-            )
+            ))
           )
         )
       )
