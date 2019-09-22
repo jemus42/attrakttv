@@ -2,7 +2,7 @@
 .onLoad <- function(libname, pkgname) {
   op <- options()
   op.trakt <- list(
-    trakt_db_path = "~/db/"
+    trakt_db_path = "~/db"
   )
   toset <- !(names(op.trakt) %in% names(op))
   if (any(toset)) options(op.trakt[toset])

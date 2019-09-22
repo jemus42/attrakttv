@@ -6,25 +6,31 @@
 #' @export
 #'
 #' @examples
-#' cach_db_path()
-cach_db_path <- function(name = "tRakt.db") {
+#' cache_db_path()
+cache_db_path <- function(name = "tRakt.db") {
   file.path(getOption("trakt_db_path", default = "~/db"), name)
 }
 
 #' Make a connection to the db
-#'
-#' @return A `conn` [DBI] thingy
+#' @param pool `logical(1) [TRUE]`: Return a [pool].
+#' @return A `conn` [DBI] thingy _or_ `pool`.
 #' @export
 #' @importFrom RSQLite dbConnect SQLite
+#' @importFrom pool dbPool
 #' @examples
 #' \dontrun{
 #' cache_db_con <- cache_db()
 #'
 #' is_already_cached("shows", 1390, cache_db_con)
 #' }
-cache_db <- function() {
-  dbConnect(SQLite(), cach_db_path())
+cache_db <- function(pool = TRUE) {
+  if (pool) {
+    dbPool(drv = SQLite(), dbname = cache_db_path())
+  } else {
+    dbConnect(SQLite(), cache_db_path())
+  }
 }
+
 
 #' Check if a table exists in db, if not, create it
 #'

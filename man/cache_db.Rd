@@ -4,10 +4,13 @@
 \alias{cache_db}
 \title{Make a connection to the db}
 \usage{
-cache_db()
+cache_db(pool = TRUE)
+}
+\arguments{
+\item{pool}{\code{logical(1) [TRUE]}: Return a \link{pool}.}
 }
 \value{
-A \code{conn} \link{DBI} thingy
+A \code{conn} \link{DBI} thingy \emph{or} \code{pool}.
 }
 \description{
 Make a connection to the db
