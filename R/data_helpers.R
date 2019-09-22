@@ -116,3 +116,23 @@ rating_label <- function(x) {
     TRUE ~ "??"
   )
 }
+
+#' Label country codes
+#'
+#' @param x A country code like `"us"`
+#'
+#' @return `character` of same length as `x`
+#' @export
+#' @importFrom purrr map_chr
+#' @importFrom dplyr pull filter
+country_label <- function(x) {
+  map_chr(x, ~{
+    res <- countries %>%
+      filter(code == .x) %>%
+      pull(name)
+
+    if (identical(res, character(0))) res <- "N/A"
+    res
+  })
+}
+

@@ -112,9 +112,10 @@ shinyServer(function(input, output, session) {
       select(rating, votes, episodes = aired_episodes, runtime, network, country) %>%
       mutate(
         rating = round(rating, 1),
-        country = countries$name[countries$code == country],
+        country = country_label(country),
         runtime = glue("{runtime}min")
       ) %>%
+      mutate_if(is.na, ~ "N/A") %>%
       rename_all(str_to_title) %>%
       knitr::kable(format = "html") %>%
       kableExtra::kable_styling(bootstrap_options = c("responsive")) %>%
