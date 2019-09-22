@@ -1,4 +1,3 @@
-#### Shiny Server ####
 shinyServer(function(input, output, session) {
 
   # Caching observer ----
@@ -154,8 +153,6 @@ shinyServer(function(input, output, session) {
       )
     )
   })
-
-
 
   # get_show observer ----
   observeEvent(input$get_show, {

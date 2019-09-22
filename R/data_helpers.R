@@ -113,7 +113,7 @@ rating_label <- function(x) {
     x == 8  ~ "Great",
     x == 9  ~ "Superb",
     x == 10 ~ "Totally Ninja!",
-    TRUE ~ "??"
+    TRUE    ~ "??"
   )
 }
 
