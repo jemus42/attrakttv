@@ -1,7 +1,11 @@
+# options(shiny.reactlog = TRUE)
+# library(reactlog)
+
+
 shinyServer(function(input, output, session) {
 
   # Caching observer ----
-  observe({
+  observe(label = "Cache initializer", {
     cached_shows <- cache_shows_tbl %>%
       collect() %>%
       filter(rating >= 7, votes >= 1000) %>%
@@ -16,7 +20,7 @@ shinyServer(function(input, output, session) {
   })
 
   # Query string observer ----
-  observe({
+  observe(label = "Query string updater", {
     query <- getQueryString(session)
     query_slug <- query[['show']]
 
@@ -34,7 +38,7 @@ shinyServer(function(input, output, session) {
   })
 
   # Show info reactiveEvent ----
-  show_info <- eventReactive(input$get_show, {
+  show_info <- eventReactive(input$get_show, label = "show_info()", {
 
     if (stringr::str_detect(input$shows_cached, "^cache:")) {
       # cli_alert_info("cached show detected {input$shows_cached}")
@@ -78,7 +82,7 @@ shinyServer(function(input, output, session) {
   })
 
   # Show seasons reactive ----
-  show_seasons <- eventReactive(input$get_show, {
+  show_seasons <- eventReactive(input$get_show, label = "show_seasons()", {
 
     current_show <- show_info()
     current_show_id <- current_show$show_id
@@ -155,7 +159,7 @@ shinyServer(function(input, output, session) {
   })
 
   # get_show observer ----
-  observeEvent(input$get_show, {
+  observeEvent(input$get_show, autoDestroy = 1, label = "Hide Intro", {
     # cat(input$shows_cached, "\n")
 
     if (input$get_show > 0) {
@@ -166,7 +170,7 @@ shinyServer(function(input, output, session) {
   })
 
   # User search logging?
-  observeEvent(input$get_show, {
+  observeEvent(input$get_show, label = "Log requests", {
 
     if ((input$get_show %% 2) == 0) return(NULL)
 
