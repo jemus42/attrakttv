@@ -4,10 +4,12 @@
 \alias{cache_db}
 \title{Make a connection to the db}
 \usage{
-cache_db(pool = TRUE)
+cache_db(pool = TRUE, path = cache_db_path())
 }
 \arguments{
 \item{pool}{\code{logical(1) [TRUE]}: Return a \link{pool}.}
+
+\item{path}{The path to the SQLite db, defaults to \code{\link[=cache_db_path]{cache_db_path()}}}
 }
 \value{
 A \code{conn} \link{DBI} thingy \emph{or} \code{pool}.

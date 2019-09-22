@@ -12,6 +12,7 @@ cache_db_path <- function(name = "tRakt.db") {
 }
 
 #' Make a connection to the db
+#' @param path The path to the SQLite db, defaults to [cache_db_path()]
 #' @param pool `logical(1) [TRUE]`: Return a [pool].
 #' @return A `conn` [DBI] thingy _or_ `pool`.
 #' @export
@@ -23,7 +24,7 @@ cache_db_path <- function(name = "tRakt.db") {
 #'
 #' is_already_cached("shows", 1390, cache_db_con)
 #' }
-cache_db <- function(pool = TRUE) {
+cache_db <- function(pool = TRUE, path = cache_db_path()) {
   if (pool) {
     dbPool(drv = SQLite(), dbname = cache_db_path())
   } else {

@@ -13,11 +13,16 @@ library(glue)
 library(purrr)
 library(stringr)
 library(cliapp)
+library(kableExtra)
 library(attrakttv)
 
 
 # Database connection -----
 cache_db_con <- cache_db()
+
+onStop(function() {
+  pool::poolClose(pool = cache_db_con)
+})
 
 # on.exit(dbDisconnect(cache_db_con), add = TRUE)
 
@@ -30,7 +35,7 @@ cache_episodes_tbl <- tbl(cache_db_con, "episodes")
 app_title <- glue("attrakttv v{desc::desc_get_version()}")
 
 ## Define some HTML characters
-# bullet <- HTML("&#8226;")
+bullet <- HTML("&#8226;")
 # mu     <- HTML("&#956;")
 # sigma  <- HTML("&#963;")
 
