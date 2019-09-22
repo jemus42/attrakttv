@@ -134,3 +134,45 @@ country_label <- function(x) {
   res
 
 }
+
+
+#' Convert back and forth between slugs and show_ids
+#'
+#' @param show_id,slug A `show_id` or `slug`, of which _one_ must
+#' be supplied to get the other.
+#' @inheritParams cache_add_data
+#'
+#' @return `character(1)`
+#' @export
+#' @importFrom RSQLite dbDisconnect
+#' @examples
+#' convert_ids(slug = "futurama")
+#' convert_ids(show_id = "614")
+convert_ids <- function(show_id = NULL, slug = NULL, cache_db_con) {
+
+  if (missing(cache_db_con)) {
+    cache_db_con <- cache_db()
+    on.exit(dbDisconnect(cache_db_con))
+  }
+
+  shows <- tbl(cache_db_con, "shows") %>% select(show_id, slug) %>% collect()
+
+  if (!is.null(slug)) {
+
+    ids <- shows$show_id
+    names(ids) <- shows$slug
+    ids[slug]
+
+  } else if (!is.null(show_id)) {
+
+    show_id <- stringr::str_remove(show_id, "^cache:")
+
+    slugs <- shows$slug
+    names(slugs) <- shows$show_id
+    slugs[show_id]
+
+  } else {
+    stop("Gotta pick one")
+  }
+}
+
