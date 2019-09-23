@@ -276,8 +276,13 @@ shinyServer(function(input, output, session) {
           "First Aired" = "first_aired"
         ),
         rownames = FALSE, style = "bootstrap",
-        filter = "top", fillContainer = FALSE,
-        options = list(dom = "ltp", autoWidth = FALSE, pageLength = 10)
+        filter = "top", fillContainer = TRUE,
+        options = list(
+          dom = "ltp",
+          autoWidth = FALSE,
+          pageLength = 10,
+          scrollX = TRUE, scrollY = FALSE
+        )
       )
   })
 
