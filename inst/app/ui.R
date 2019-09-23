@@ -18,7 +18,7 @@ intro_text <- wellPanel(
 
 shinyUI(
   navbarPage(
-    title = app_title,
+    title = tags$a(href = "/", app_title),
     theme = shinythemes::shinytheme("flatly"),
     collapsible = TRUE,
     # Main view ----
@@ -36,6 +36,7 @@ shinyUI(
           alt = ""))
         )
       ),
+      # shinythemes::themeSelector(),
 
       # Intro text ----
       intro_text,
@@ -49,7 +50,7 @@ shinyUI(
             tagAppendAttributes(
               selectizeInput(
                 inputId = "shows_cached", label = NULL,
-                choices = show_ids, selected = NULL,
+                choices = show_ids, selected = "",
                 options = list(
                   create = TRUE,
                   placeholder = "Pick a show – if it's not listed yet I'll look it up",
@@ -74,22 +75,27 @@ shinyUI(
 
       # Episode information ----
       hidden(
-        fluidRow(id = "season_container",
+        fluidRow(id = "season_container", class = "collapse",
           hr(),
-          h2("Seasons", style = "text-align: center;"),
+          h2(
+            tags$a(href = "#season_table", `data-toggle` = "collapse", "Seasons"),
+            style = "text-align: center;"
+          ),
           hr(),
-          column(
+          column(id = "season_table",
             12, class = "seasons_table_column",
             DT::DTOutput(outputId = "show_seasons_table", width = "97%")
             )
           )
       ),
       hidden(
-        fluidRow(id = "episodes_container",
+        fluidRow(id = "episodes_container", class = "collapse",
           hr(),
-          h2("Episodes", style = "text-align: center;"),
-          hr(),
-          column(
+          h2(
+            tags$a(href = "#episodes_table", `data-toggle` = "collapse", "Episodes"),
+            style = "text-align: center;"
+          ),          hr(),
+          column(id = "episodes_table",
            width = 12, class = "episodes_table_column",
            DT::DTOutput(outputId = "show_episodes_table", width = "97%")
           )

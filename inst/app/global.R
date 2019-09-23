@@ -46,7 +46,7 @@ cached_shows <- cache_shows_tbl %>%
 
 show_ids <- paste0("cache:", cached_shows$show_id)
 names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
-
+show_ids <- c("", show_ids)
 
 # Helper functions ----
 
