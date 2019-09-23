@@ -55,9 +55,12 @@ shinyServer(function(input, output, session) {
         stringr::str_extract(., "\\d+")
 
     } else if (input$shows_cached != "") {
+      # cli_alert("Adding to cache")
       input_show <- input$shows_cached %>%
         stringr::str_remove(., "^cache:") %>%
         cache_add_show(cache_db_con = cache_db_con)
+
+      if (is.null(input_show)) return(NULL)
 
       # cli_alert_info("input_show after caching attempt is {input_show}")
     } else if (!is.null(query_slug)) {
