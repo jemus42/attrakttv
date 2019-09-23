@@ -4,7 +4,7 @@
 
 library(shiny)
 library(shinyjs)
-# library(DT)
+library(DT)
 # library(plotly)
 library(tRakt)
 # library(RSQLite)

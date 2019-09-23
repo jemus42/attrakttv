@@ -97,20 +97,69 @@ shinyServer(function(input, output, session) {
       )
   })
 
-  # Show seasons reactive ----
-  show_seasons <- eventReactive(input$get_show, label = "show_seasons()", {
+  # show_seasons() ----
+  show_seasons <- eventReactive(show_info(), label = "show_seasons()", {
+
+    cli_alert_info("Making show_seasons()")
 
     current_show <- show_info()
     current_show_id <- current_show$show_id
 
+    if (!is_already_cached("seasons", current_show_id, cache_db_con)) {
+      cli_alert_success("Adding {current_show_id} episodes to cache")
+      cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
+    }
+
     current_show_seasons <- cache_seasons_tbl %>%
       filter(show_id == current_show_id) %>%
-      collect()
+      collect() %>%
+      transmute(
+       # season = season,
+        title = title,
+        rating = round(rating, 1),
+        votes = votes,
+        aired_total = glue("{aired_episodes} / {episode_count}"),
+        network = network,
+        first_aired = as.POSIXct(first_aired, tz = "UTC", origin = lubridate::origin),
+        first_aired = as.Date(first_aired)
+      )
 
     current_show_seasons
-  })
+  }, ignoreNULL = TRUE)
 
-  # Show overview output ----
+
+  # show_episodes() ----
+  show_episodes <- eventReactive(show_info(), label = "show_episodes()", {
+
+    show_seasons()
+
+    cli_alert_info("Making show_episodes()")
+
+    current_show <- show_info()
+    current_show_id <- current_show$show_id
+
+    # if (!is_already_cached("episodes", current_show_id, cache_db_con)) {
+    #   cli_alert_success("Adding {current_show_id} episodes to cache")
+    #   cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
+    # }
+
+    current_show_episodes <- cache_episodes_tbl %>%
+      filter(show_id == current_show_id) %>%
+      collect() %>%
+      transmute(
+        season_episode = tRakt:::pad(season, episode),
+        title = title,
+        rating = round(rating, 1),
+        votes = votes,
+        comment_count = comment_count,
+        first_aired = as.POSIXct(first_aired, tz = "UTC", origin = lubridate::origin),
+        first_aired = as.Date(first_aired)
+      )
+
+    current_show_episodes
+  }, ignoreNULL = TRUE)
+
+  # show_overview renderUI  ----
   output$show_overview <- renderUI({
     input$shows_cached
     show <- isolate(show_info())
@@ -194,6 +243,46 @@ shinyServer(function(input, output, session) {
     )
   })
 
+  # DT: Seasons ----
+  output$show_seasons_table <- DT::renderDT({
+    seasons <- show_seasons()
+
+    str(seasons)
+
+    seasons %>%
+      datatable(
+        colnames = c(
+          "Name" = "title",
+          "Rating" = "rating",
+          "Votes" = "votes",
+          "Episodes (aired / total)" = "aired_total",
+          "First Aired" = "first_aired"
+          ),
+        rownames = FALSE, style = "bootstrap",
+        options = list(dom = "t")
+      )
+  })
+
+  # DT: Episodes ----
+  output$show_episodes_table <- DT::renderDT({
+    episodes <- show_episodes()
+
+    episodes %>%
+      datatable(
+        colnames = c(
+          "Season/Episode" = "season_episode",
+          "Name" = "title",
+          "Rating" = "rating",
+          "Votes" = "votes",
+          "Comments" = "comment_count",
+          "First Aired" = "first_aired"
+        ),
+        rownames = FALSE, style = "bootstrap", fillContainer = FALSE,
+        options = list(dom = "t")
+      )
+  })
+
+
   # get_show observer ----
   observeEvent(input$get_show, once = TRUE, label = "Hide Intro", {
     # cat(input$shows_cached, "\n")
@@ -202,6 +291,8 @@ shinyServer(function(input, output, session) {
       # cat("input$get_show is", input$get_show, "\n")
       hide(id = "intro-wellpanel")
       shinyjs::show(id = "show_overview")
+      shinyjs::show(id = "season_container")
+      shinyjs::show(id = "episodes_container")
     }
   })
 

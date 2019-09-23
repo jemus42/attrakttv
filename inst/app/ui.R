@@ -51,28 +51,29 @@ shinyUI(
 
       # Episode information ----
       hidden(
-        hr(),
-        tabsetPanel(
-          id = "episode_info", selected = "tab_plot"#,
-          # tabPanel(
-          #   title = "Plot", value = "tab_plot", icon = icon("bar-chart-o"),
-          #   plotlyOutput(outputId = "episodeplot")
-          # ),
-          # tabPanel(
-          #   title = "Episodes", value = "tab_data_episodes", icon = icon("table"),
-          #   DT::dataTableOutput(outputId = "table_episodes")
-          # ),
-          # tabPanel(
-          #   title = "Seasons", value = "tab_data_seasons", icon = icon("table"),
-          #   DT::dataTableOutput(outputId = "table_seasons")
-          # )
-        )
+        fluidRow(id = "season_container",
+          hr(),
+          h3("Seasons", style = "text-align: center;"),
+          column(
+            12,
+            DT::DTOutput(outputId = "show_season_table")
+            )
+          )
       ),
-
-      hr()
+      hidden(
+        fluidRow(id = "episodes_container",
+          hr(),
+          h3("Episodes", style = "text-align: center;"),
+          column(
+           12,
+           DT::DTOutput(outputId = "show_episodes_table")
+          )
+        )
+      )
     ),
     # Footer ----
     footer = fluidRow(
+      hr()
     ),
     # Didn't know where else to put it, but this one's a biggie
     useShinyjs()
