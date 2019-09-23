@@ -1,3 +1,17 @@
+intro_text <- wellPanel(
+  id = "intro-wellpanel",
+  p(
+    class = "lead",
+    HTML("This is <code>attrakttv</code>, for now at least (naming things is hard).")
+  ),
+  p("It's a complete overhaupt of ",
+    tags$a(href = "https://trakt.jemu.name", "trakt.jemu.name"),
+    "and while not feature complete yet, it's at least a lot faster and less terrible."
+    ),
+  h3("How do you even stuff?"),
+  p("Select a show from the dropdown menu, or look up a new one by, well, entering a new thing.")
+)
+
 shinyUI(
   navbarPage(
     title = app_title,
@@ -9,13 +23,18 @@ shinyUI(
       tags$head(
         #tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
         tags$head(tags$link(rel = "shortcut icon", href = "favicon.png")),
+        tags$script(src = "js/matomo.js", type = "application/javascript"),
         tags$script(src = "js/proxy-click.js", type = "application/javascript"),
-        tags$link(href = "css/tRakt.css", rel = "stylesheet")
-        #includeHTML("html/piwik.html")
+        tags$link(href = "css/tRakt.css", rel = "stylesheet"),
+        tags$noscript(p(img(
+          src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
+          style = "border:0;",
+          alt = ""))
+        )
       ),
 
       # Intro text ----
-      wellPanel(id = "intro-wellpanel", includeMarkdown("text/intro.md")),
+      intro_text,
 
       # Control panel ----
       wellPanel(
