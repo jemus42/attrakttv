@@ -247,8 +247,6 @@ shinyServer(function(input, output, session) {
   output$show_seasons_table <- DT::renderDT({
     seasons <- show_seasons()
 
-    str(seasons)
-
     seasons %>%
       datatable(
         colnames = c(
@@ -277,8 +275,9 @@ shinyServer(function(input, output, session) {
           "Comments" = "comment_count",
           "First Aired" = "first_aired"
         ),
-        rownames = FALSE, style = "bootstrap", fillContainer = FALSE,
-        options = list(dom = "t")
+        rownames = FALSE, style = "bootstrap",
+        filter = "top", fillContainer = FALSE,
+        options = list(dom = "ltp", autoWidth = FALSE, pageLength = 10)
       )
   })
 
@@ -290,21 +289,21 @@ shinyServer(function(input, output, session) {
     if (input$get_show > 0) {
       # cat("input$get_show is", input$get_show, "\n")
       hide(id = "intro-wellpanel")
-      shinyjs::show(id = "show_overview")
-      shinyjs::show(id = "season_container")
-      shinyjs::show(id = "episodes_container")
+      shinyjs::show(id = "show_overview", animType = "slide", time = 1)
+      shinyjs::show(id = "season_container", animType = "slide", time = 1)
+      shinyjs::show(id = "episodes_container", animType = "slide", time = 1)
     }
   })
 
   # Request log ----
-  observeEvent(input$get_show, label = "Log requests", priority = -1, {
+  observeEvent(show_info(), label = "Log requests", {
 
-    if (input$get_show == 0) return(NULL)
-    if (input$shows_cached == "") return(NULL)
+    if (isolate(input$get_show) == 0) return(NULL)
+    if (isolate(input$shows_cached) == "") return(NULL)
 
     res <- tibble(
       time = as.numeric(lubridate::now(tzone = "UTC")),
-      request = input$shows_cached
+      request = isolate(input$shows_cached)
     )
     cli_alert("Logging request")
     check_cache_table("requests", res, cache_db_con)

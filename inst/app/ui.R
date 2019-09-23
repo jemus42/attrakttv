@@ -53,20 +53,22 @@ shinyUI(
       hidden(
         fluidRow(id = "season_container",
           hr(),
-          h3("Seasons", style = "text-align: center;"),
+          h2("Seasons", style = "text-align: center;"),
+          hr(),
           column(
-            12,
-            DT::DTOutput(outputId = "show_season_table")
+            12, class = "seasons_table_column",
+            DT::DTOutput(outputId = "show_seasons_table", width = "97%")
             )
           )
       ),
       hidden(
         fluidRow(id = "episodes_container",
           hr(),
-          h3("Episodes", style = "text-align: center;"),
+          h2("Episodes", style = "text-align: center;"),
+          hr(),
           column(
-           12,
-           DT::DTOutput(outputId = "show_episodes_table")
+           width = 12, class = "episodes_table_column",
+           DT::DTOutput(outputId = "show_episodes_table", width = "97%")
           )
         )
       )
