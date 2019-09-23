@@ -4,12 +4,12 @@ intro_text <- wellPanel(
     class = "lead",
     HTML("This is <code>attrakttv</code>, for now at least (naming things is hard).")
   ),
-  p("It's a complete overhaupt of ",
+  p("It's a complete overhaul of ",
     tags$a(href = "https://trakt.jemu.name", "trakt.jemu.name"),
-    "and while not feature complete yet, it's at least a lot faster and less terrible."
+    ", and while not feature complete yet, it's at least a lot faster and less terrible."
   ),
   p("You can look up TV show data from ", a(href = "https://trakt.tv", "trakt.tv"),
-    "and get data on seasons and episodes. Soonish there'll be plots. Hopefully lots of plots."
+    "and get data on seasons and episodes. Soonish there'll be plots. Hopefully pretty plots."
   ),
   p("The source is available on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub")),
   h3("How do you even stuff?"),
@@ -18,7 +18,7 @@ intro_text <- wellPanel(
 
 shinyUI(
   navbarPage(
-    title = tags$a(href = "/", app_title),
+    title = app_title, # tags$a(href = "/", app_title),
     theme = shinythemes::shinytheme("flatly"),
     collapsible = TRUE,
     # Main view ----

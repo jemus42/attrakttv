@@ -119,7 +119,7 @@ shinyServer(function(input, output, session) {
         rating = round(rating, 1),
         votes = votes,
         aired_total = glue("{aired_episodes} / {episode_count}"),
-        network = network,
+        # network = network,
         first_aired = as.POSIXct(first_aired, tz = "UTC", origin = lubridate::origin),
         first_aired = as.Date(first_aired)
       )
@@ -282,16 +282,16 @@ shinyServer(function(input, output, session) {
   })
 
 
-  # get_show observer ----
+  # Startup toggles ----
   observeEvent(input$get_show, once = TRUE, label = "Hide Intro", {
     # cat(input$shows_cached, "\n")
 
     if (input$get_show > 0) {
       # cat("input$get_show is", input$get_show, "\n")
-      hide(id = "intro-wellpanel")
-      shinyjs::show(id = "show_overview", animType = "slide", time = 1)
-      shinyjs::show(id = "season_container", animType = "slide", time = 1)
-      shinyjs::show(id = "episodes_container", animType = "slide", time = 1)
+      hide(id = "intro-wellpanel", anim = TRUE, animType = "fade", time = 1)
+      shinyjs::show(id = "show_overview", anim = TRUE, animType = "slide", time = 2)
+      shinyjs::show(id = "season_container", anim = TRUE, animType = "slide", time = 2)
+      shinyjs::show(id = "episodes_container", anim = TRUE, animType = "slide", time = 2)
     }
   })
 
