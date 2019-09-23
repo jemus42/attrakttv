@@ -203,8 +203,9 @@ shinyServer(function(input, output, session) {
   })
 
   # Request log ----
-  observeEvent(input$get_show, label = "Log requests", {
+  observeEvent(input$get_show, label = "Log requests", priority = -1, {
 
+    if (input$get_show == 0) return(NULL)
     if (input$shows_cached == "") return(NULL)
 
     res <- tibble(
