@@ -7,9 +7,22 @@ intro_text <- wellPanel(
   p("It's a complete overhaupt of ",
     tags$a(href = "https://trakt.jemu.name", "trakt.jemu.name"),
     "and while not feature complete yet, it's at least a lot faster and less terrible."
-    ),
+  ),
+  p("You can look up TV show data from ", a(href = "https://trakt.tv", "trakt.tv"),
+    "and get data on seasons and episodes. Soonish there'll be plots. Hopefully lots of plots."
+  ),
+  p("The source is available on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub")),
   h3("How do you even stuff?"),
   p("Select a show from the dropdown menu, or look up a new one by, well, entering a new thing.")
+)
+
+footer_content <- column(
+  12,
+  column(
+    12,
+    p(
+    )
+  )
 )
 
 shinyUI(
@@ -94,7 +107,8 @@ shinyUI(
     ),
     # Footer ----
     footer = fluidRow(
-      hr()
+      hr(),
+      footer_content
     ),
     # Didn't know where else to put it, but this one's a biggie
     useShinyjs()
