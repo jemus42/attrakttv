@@ -16,15 +16,6 @@ intro_text <- wellPanel(
   p("Select a show from the dropdown menu, or look up a new one by, well, entering a new thing.")
 )
 
-footer_content <- column(
-  12,
-  column(
-    12,
-    p(
-    )
-  )
-)
-
 shinyUI(
   navbarPage(
     title = app_title,
@@ -106,10 +97,7 @@ shinyUI(
       )
     ),
     # Footer ----
-    footer = fluidRow(
-      hr(),
-      footer_content
-    ),
+    footer = hr(),
     # Didn't know where else to put it, but this one's a biggie
     useShinyjs()
   ) # end of navbarPage
