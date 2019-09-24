@@ -106,7 +106,12 @@ shinyUI(
       )
     ),
     # Footer ----
-    footer = hr(),
+    footer = div(
+      hr(),
+      hidden(column(12, id = "debug_info",
+        h3("Debug info")
+      )
+    )),
     # Didn't know where else to put it, but this one's a biggie
     useShinyjs()
   ) # end of navbarPage

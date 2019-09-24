@@ -40,6 +40,13 @@ shinyServer(function(input, output, session) {
         # click("get_show")
       }
     }
+
+    query_debug <- query[['debug']]
+
+     if (identical(query_debug, "true")) {
+       shinyjs::show("debug_info")
+     }
+
   })
 
   # show_info() reactiveEvent ----
