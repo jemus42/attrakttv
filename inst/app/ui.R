@@ -72,7 +72,7 @@ shinyUI(
       ),
       # Show information ----
       hidden(
-        div(id = "show_overview", htmlOutput("show_overview"))
+        htmlOutput("show_overview")
       ),
 
       # Season information ----
