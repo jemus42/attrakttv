@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
   # show_seasons() ----
   show_seasons <- eventReactive(show_info(), label = "show_seasons()", {
 
-    cli_alert_info("Making show_seasons()")
+    # cli_alert_info("Making show_seasons()")
 
     current_show <- show_info()
     current_show_id <- current_show$show_id
@@ -156,7 +156,7 @@ shinyServer(function(input, output, session) {
 
     show_seasons()
 
-    cli_alert_info("Making show_episodes()")
+    # cli_alert_info("Making show_episodes()")
 
     current_show <- show_info()
     current_show_id <- current_show$show_id
@@ -170,7 +170,7 @@ shinyServer(function(input, output, session) {
       filter(show_id == current_show_id) %>%
       collect() %>%
       transmute(
-        season_episode = tRakt:::pad(season, episode),
+        season_episode = sprintf("s%02de%02d", season, episode),
         title = title,
         rating = round(rating, 1),
         votes = votes,
@@ -283,9 +283,9 @@ shinyServer(function(input, output, session) {
         tr(
           th(rowspan = 2, colspan = 1, "Name"),
           th(rowspan = 2, colspan = 1, "Episodes"),
-          th(colspan = 2, "Ratings", class = "center"),
-          th(colspan = 2, "Votes"),
-          th(colspan = 2, "Aired")
+          th(colspan = 2, "Ratings", class = "second-header", id = "secondhead"),
+          th(colspan = 2, "Votes", class = "second-header", id = "secondhead"),
+          th(colspan = 2, "Aired", class = "second-header", id = "secondhead")
         ),
         tr(
           th("Season"), th("Episode (mean)"),
@@ -351,7 +351,7 @@ shinyServer(function(input, output, session) {
 
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
-    current_show_episodes %>%
+    current_show_episodes <- current_show_episodes %>%
       bind_cols(
         current_show_episodes %>%
           group_by(season) %>%
@@ -361,30 +361,43 @@ shinyServer(function(input, output, session) {
               select(.fitted_season = .fitted, season = groups())
           }) %>%
           bind_rows()
-      ) %>%
-      plot_ly(
-        x = ~episode, y = ~rating, color = ~factor(season)
-      ) %>%
-      add_markers(
-        type = "scatter", mode = "markers",
-        stroke = I("black"),
-        alpha = .75, size = 5, name = ~paste0("Season ", season)
-      ) %>%
-      add_lines(
-        y = ~.fitted_season, type = "lines", size = I(3),
-        showlegend = FALSE
-      ) %>%
-      layout(
-        xaxis = list(
-          title = "Episode #"
-        ),
-        yaxis = list(
-          title = "Rating (1-10)"
-        ),
-        legend = list(
-          orientation = "h"
-        )
       )
+
+    # plot_ly(
+    #   data = current_show_episodes,
+    #   x = ~episode, y = ~rating, color = ~factor(season)
+    # ) %>%
+    # add_markers(
+    #   type = "scattergl", mode = "markers",
+    #   stroke = I("black"),
+    #   alpha = .75, size = 5, name = ~paste0("Season ", season),
+    #   legendgroup = ~season
+    # ) %>%
+    # add_lines(
+    #   y = ~.fitted_season, type = "lines", size = I(3),
+    #   legendgroup = ~season,
+    #   showlegend = FALSE
+    # ) %>%
+    # layout(
+    #   xaxis = list(
+    #     title = "Episode #"
+    #   ),
+    #   yaxis = list(
+    #     title = "Rating (1-10)"
+    #   ),
+    #   legend = list(
+    #     orientation = "h"
+    #   )
+    # )
+    p <- current_show_episodes %>%
+      mutate(season = factor(season)) %>%
+      ggplot(aes(x = episode, y = rating, fill = season, color = season)) +
+      geom_point(size = 3, shape = 21, stroke = .4, color = "black") +
+      geom_smooth(method = "lm", se = FALSE, show.legend = FALSE) +
+      theme_minimal() +
+      labs(x = "Episode #", y = "Rating (1-10)")
+
+    ggplotly(p)
 
   })
 
