@@ -256,7 +256,10 @@ shinyServer(function(input, output, session) {
                 style = "max-height: 250px;"
               ),
               tags$figcaption(
-                p(tags$a(href = "https://fanart.tv/", "fanart.tv"), class = "small")
+                p(tags$a("fanart.tv", href = "https://fanart.tv/",
+                         style = "color: #2C3E50; text-decoration: none;"),
+                  class = "small", style = "padding-left: 5px;"
+                )
               )
             )
           ),
