@@ -132,7 +132,7 @@ shinyServer(function(input, output, session) {
       collect() %>%
       left_join(current_show_episodes, by = "season") %>%
       transmute(
-       # season = season,
+        season = season,
         title = title,
         aired_total = if_else(
           aired_episodes < episode_count,
@@ -271,7 +271,8 @@ shinyServer(function(input, output, session) {
 
   # DT: Seasons ----
   output$show_seasons_table <- DT::renderDT({
-    seasons <- show_seasons()
+    seasons <- show_seasons() %>%
+      select(-season)
 
     sketch <- htmltools::withTags(table(
       class = 'display',
@@ -291,27 +292,27 @@ shinyServer(function(input, output, session) {
       )
     ))
 
-    seasons %>%
-      datatable(
-        container = sketch,
-        # colnames = c(
-        #   "Name" = "title",
-        #   "Season Rating" = "rating",
-        #   "Episode Rating (mean)" = "mean_rating",
-        #   "Season Votes" = "votes",
-        #   "Episode Votes" = "sum_votes",
-        #   "Episodes (Aired)" = "aired_total",
-        #   "First Aired" = "first_aired",
-        #   "Last Aired" = "last_aired"
-        #   ),
-        rownames = FALSE, style = "bootstrap",
-        fillContainer = FALSE,
-        options = list(
-          dom = "t",
-          autoWidth = FALSE,
-          scroller = FALSE
-        )
+    datatable(
+      data = seasons,
+      container = sketch,
+      # colnames = c(
+      #   "Name" = "title",
+      #   "Season Rating" = "rating",
+      #   "Episode Rating (mean)" = "mean_rating",
+      #   "Season Votes" = "votes",
+      #   "Episode Votes" = "sum_votes",
+      #   "Episodes (Aired)" = "aired_total",
+      #   "First Aired" = "first_aired",
+      #   "Last Aired" = "last_aired"
+      #   ),
+      rownames = FALSE, style = "bootstrap",
+      fillContainer = FALSE,
+      options = list(
+        dom = "t",
+        autoWidth = FALSE,
+        scroller = FALSE
       )
+    )
   })
 
   # DT: Episodes ----
@@ -326,7 +327,7 @@ shinyServer(function(input, output, session) {
         votes = votes,
         comment_count = comment_count,
         first_aired = first_aired
-      )
+      ) %>%
       datatable(
         colnames = c(
           "Season/Episode" = "season_episode",
@@ -356,6 +357,7 @@ shinyServer(function(input, output, session) {
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
     episodes <- show_episodes()
+    seasons <- show_seasons()
 
     episodes <- episodes %>%
       bind_cols(
@@ -368,24 +370,34 @@ shinyServer(function(input, output, session) {
           }) %>%
           bind_rows()
       ) %>%
+      left_join(
+        seasons %>%
+          select(season, season_title = title),
+        by = "season"
+      ) %>%
+      arrange(first_aired) %>%
       mutate(
-        episode_abs = seq_along(first_aired)
+        episode_abs = seq_along(first_aired),
+        season_title = factor(
+          season_title, levels = rev(unique(season_title)), ordered = TRUE
+        )
       )
 
     plot_ly(
       data = episodes,
-      x = ~episode_abs, y = ~rating, color = ~factor(season)
+      x = ~episode_abs, y = ~rating, color = ~season_title #~factor(season, ordered = TRUE)
     ) %>%
     add_markers(
       type = "scattergl", mode = "markers",
       stroke = I("black"),
-      alpha = .75, size = 5, name = ~paste0("Season ", season),
+      alpha = .75, size = 5, name = ~season_title,#paste0("Season ", season),
       legendgroup = ~season,
       text = ~title,
       hoverinfo = "text"
     ) %>%
     add_lines(
       y = ~.fitted_season, type = "lines", size = I(3),
+      line = list(dash = "dash"),
       legendgroup = ~season,
       showlegend = FALSE
     ) %>%
@@ -397,7 +409,7 @@ shinyServer(function(input, output, session) {
         title = "Rating (1-10)"
       ),
       legend = list(
-        orientation = "h"
+        orientation = "v"
       )
     )
     # p <- current_show_episodes %>%
