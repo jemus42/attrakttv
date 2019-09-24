@@ -15,3 +15,7 @@ Object of class \code{POSIXct}.
 \description{
 Convert numeric timestamp to POSIXct
 }
+\examples{
+x <- c(927079200, 958960800, 989805600, 1060567200, 1315533600, 1378346400)
+unix_datetime(x)
+}
