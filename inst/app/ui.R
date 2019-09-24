@@ -75,7 +75,7 @@ shinyUI(
         div(id = "show_overview", htmlOutput("show_overview"))
       ),
 
-      # Episode information ----
+      # Season information ----
       hidden(
         fluidRow(id = "season_container", class = "collapse",
           hr(),
@@ -86,10 +86,11 @@ shinyUI(
           hr(),
           column(id = "season_table",
             12, class = "seasons_table_column",
-            DT::DTOutput(outputId = "show_seasons_table", width = "97%")
+            DT::DTOutput(outputId = "show_seasons_table", width = "100%")
             )
           )
       ),
+      # Episode information ----
       hidden(
         fluidRow(id = "episodes_container", class = "collapse",
           hr(),
@@ -99,7 +100,7 @@ shinyUI(
           ),          hr(),
           column(id = "episodes_table",
            width = 12, class = "episodes_table_column",
-           DT::DTOutput(outputId = "show_episodes_table", width = "97%")
+           DT::DTOutput(outputId = "show_episodes_table", width = "100%")
           )
         )
       )

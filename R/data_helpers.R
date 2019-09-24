@@ -194,3 +194,32 @@ convert_ids <- function(show_id = NULL, slug = NULL, cache_db_con) {
   }
 }
 
+
+#' Convert numeric timestam to Date
+#'
+#' Note: Hardcoded UTC timezone and origin of `1970-01-01`
+#' @param x A numeric timestamp in unix epoch.
+#'
+#' @return Object of class `Date`.
+#' @export
+#'
+#' @examples
+#' x <- c(927079200, 958960800, 989805600, 1060567200, 1315533600, 1378346400)
+#' unix_date(x)
+unix_date <- function(x) {
+  as.POSIXct(x, tz = "UTC", origin = "1970-01-01") %>%
+    as.Date()
+}
+
+#' Convert numeric timestamp to POSIXct
+#'
+#' @inheritParams unix_date
+#'
+#' @return Object of class `POSIXct`.
+#' @export
+#' @examples
+#' x <- c(927079200, 958960800, 989805600, 1060567200, 1315533600, 1378346400)
+#' unix_datetime(x)
+unix_datetime <- function(x) {
+  as.POSIXct(x, tz = "UTC", origin = "1970-01-01")
+}

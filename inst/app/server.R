@@ -110,18 +110,34 @@ shinyServer(function(input, output, session) {
       cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
     }
 
+    current_show_episodes <- cache_episodes_tbl %>%
+      filter(show_id == current_show_id) %>%
+      collect() %>%
+      group_by(season) %>%
+      summarize(
+        mean_rating = weighted.mean(rating, w = votes, na.rm = TRUE),
+        sum_votes = sum(votes),
+        last_aired = max(first_aired)
+      )
+
     current_show_seasons <- cache_seasons_tbl %>%
       filter(show_id == current_show_id) %>%
       collect() %>%
+      left_join(current_show_episodes, by = "season") %>%
       transmute(
        # season = season,
         title = title,
+        aired_total = if_else(
+          aired_episodes < episode_count,
+          glue("{aired_episodes} (of {episode_count} total)"),
+          as.character(aired_episodes)
+        ),
         rating = round(rating, 1),
+        mean_rating = round(mean_rating, 1),
         votes = votes,
-        aired_total = glue("{aired_episodes} / {episode_count}"),
-        # network = network,
-        first_aired = as.POSIXct(first_aired, tz = "UTC", origin = lubridate::origin),
-        first_aired = as.Date(first_aired)
+        sum_votes = sum_votes,
+        first_aired = unix_date(first_aired),
+        last_aired = unix_date(last_aired)
       )
 
     current_show_seasons
@@ -225,7 +241,7 @@ shinyServer(function(input, output, session) {
       wellPanel(
         fluidRow(
           column(
-            3,
+            2,
             class = "hidden-xs",
             tags$figure(
               img(
@@ -236,7 +252,7 @@ shinyServer(function(input, output, session) {
             )
           ),
           column(
-            9,
+            9, offset = -1,
             p(class = "lead", stringr::str_trunc(show$overview, 200, "right")),
             summary_table
           )
@@ -249,17 +265,44 @@ shinyServer(function(input, output, session) {
   output$show_seasons_table <- DT::renderDT({
     seasons <- show_seasons()
 
+    sketch <- htmltools::withTags(table(
+      class = 'display',
+      thead(
+        tr(
+          th(rowspan = 2, colspan = 1, "Name"),
+          th(rowspan = 2, colspan = 1, "Episodes"),
+          th(colspan = 2, "Ratings", class = "center"),
+          th(colspan = 2, "Votes"),
+          th(colspan = 2, "Aired")
+        ),
+        tr(
+          th("Season"), th("Episode (mean)"),
+          th("Season"), th("Episodes"),
+          th("Started"), th("Ended")
+        )
+      )
+    ))
+
     seasons %>%
       datatable(
-        colnames = c(
-          "Name" = "title",
-          "Rating" = "rating",
-          "Votes" = "votes",
-          "Episodes (aired / total)" = "aired_total",
-          "First Aired" = "first_aired"
-          ),
+        container = sketch,
+        # colnames = c(
+        #   "Name" = "title",
+        #   "Season Rating" = "rating",
+        #   "Episode Rating (mean)" = "mean_rating",
+        #   "Season Votes" = "votes",
+        #   "Episode Votes" = "sum_votes",
+        #   "Episodes (Aired)" = "aired_total",
+        #   "First Aired" = "first_aired",
+        #   "Last Aired" = "last_aired"
+        #   ),
         rownames = FALSE, style = "bootstrap",
-        options = list(dom = "t")
+        fillContainer = FALSE,
+        options = list(
+          dom = "t",
+          autoWidth = FALSE,
+          scroller = FALSE
+        )
       )
   })
 
@@ -278,15 +321,16 @@ shinyServer(function(input, output, session) {
           "First Aired" = "first_aired"
         ),
         rownames = FALSE, style = "bootstrap",
-        filter = "bottom", fillContainer = FALSE,
+        filter = list(position = "top", clear = FALSE, plain = TRUE),
+        fillContainer = FALSE,
         options = list(
-          dom = "tp",
-          autoWidth = TRUE,
+          dom = "t",
+          autoWidth = FALSE,
           pageLength = -1,
-          scrollX = TRUE,
           scrollY = 500,
           scroller = TRUE,
-          deferRender = TRUE#,
+          deferRender = TRUE,
+          scrollCollapse = TRUE
           #lengthMenu = list(c(25, 50, -1), c("25", "50", "All"))
         ),
         extensions = "Responsive"

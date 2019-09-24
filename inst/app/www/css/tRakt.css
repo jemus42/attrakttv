@@ -20,3 +20,16 @@ h2, .h2 {
 .img-responsive, .img-rounded, .show-poster {
   max-height: 250px;
 }
+
+/* Neither is this :( */
+#show_seasons_table {
+  margin-left: auto;
+}
+
+.datatables .html-widget .html-widget-output {
+    margin-left: auto;
+}
+
+.table th {
+   text-align: center;
+}
