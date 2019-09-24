@@ -109,7 +109,8 @@ shinyUI(
     footer = div(
       hr(),
       hidden(column(12, id = "debug_info",
-        h3("Debug info")
+        h3("Debug info"),
+        plotlyOutput("plotly_episodes")
       )
     )),
     # Didn't know where else to put it, but this one's a biggie

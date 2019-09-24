@@ -175,8 +175,7 @@ shinyServer(function(input, output, session) {
         rating = round(rating, 1),
         votes = votes,
         comment_count = comment_count,
-        first_aired = as.POSIXct(first_aired, tz = "UTC", origin = lubridate::origin),
-        first_aired = as.Date(first_aired)
+        first_aired = unix_date(first_aired)
       )
 
     current_show_episodes
@@ -255,12 +254,15 @@ shinyServer(function(input, output, session) {
                 src = show$show_poster,
                 class = "img-responsive img-rounded show-poster",
                 style = "max-height: 250px;"
+              ),
+              tags$figcaption(
+                p(tags$a(href = "https://fanart.tv/", "fanart.tv"), class = "small")
               )
             )
           ),
           column(
             9, offset = -1,
-            p(class = "lead", stringr::str_trunc(show$overview, 200, "right")),
+            p(class = "lead", stringr::str_trunc(show$overview, 300, "right")),
             summary_table
           )
         )
@@ -344,6 +346,45 @@ shinyServer(function(input, output, session) {
       )
   })
 
+  # plotly: Episodes ----
+  output$plotly_episodes <- renderPlotly({
+    current_show_episodes %>%
+      bind_cols(
+        current_show_episodes %>%
+          group_by(season) %>%
+          group_map(~{
+            lm(rating ~ episode, data = .x) %>%
+              broom::augment() %>%
+              select(.fitted_season = .fitted, season = groups())
+          }) %>%
+          bind_rows()
+      ) %>%
+      plot_ly(
+        x = ~episode, y = ~rating, color = ~factor(season)
+      ) %>%
+      add_markers(
+        type = "scatter", mode = "markers",
+        stroke = I("black"),
+        alpha = .75, size = 5, name = ~paste0("Season ", season)
+      ) %>%
+      add_lines(
+        y = ~.fitted_season, type = "lines", size = I(3),
+        showlegend = FALSE
+      ) %>%
+      layout(
+        xaxis = list(
+          title = "Episode #"
+        ),
+        yaxis = list(
+          title = "Rating (1-10)"
+        ),
+        legend = list(
+          orientation = "h"
+        )
+      )
+
+  })
+
 
   # Startup toggles ----
   observeEvent(input$get_show, once = TRUE, label = "Hide Intro", {
@@ -351,7 +392,7 @@ shinyServer(function(input, output, session) {
 
     if (input$get_show > 0) {
       # cat("input$get_show is", input$get_show, "\n")
-      hide(id = "intro-wellpanel", anim = TRUE, animType = "fade", time = 1)
+      hide(id = "intro-wellpanel", anim = TRUE, animType = "slide", time = 1)
       shinyjs::show(id = "show_overview", anim = TRUE, animType = "slide", time = 2)
       shinyjs::show(id = "season_container", anim = TRUE, animType = "slide", time = 2)
       shinyjs::show(id = "episodes_container", anim = TRUE, animType = "slide", time = 2)
