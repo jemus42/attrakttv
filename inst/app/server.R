@@ -261,7 +261,11 @@ shinyServer(function(input, output, session) {
           ),
           column(
             9, offset = -1,
-            p(class = "lead", stringr::str_trunc(show$overview, 300, "right")),
+            p(class = "lead",
+              if_else(!is.na(show$overview),
+                      stringr::str_trunc(show$overview, 300, "right"),
+                      "No overview available ¯\\_(ツ)_/¯")
+            ),
             summary_table
           )
         )
