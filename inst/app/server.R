@@ -278,14 +278,18 @@ shinyServer(function(input, output, session) {
           "First Aired" = "first_aired"
         ),
         rownames = FALSE, style = "bootstrap",
-        filter = "top", fillContainer = FALSE,
+        filter = "bottom", fillContainer = FALSE,
         options = list(
-          dom = "ltp",
-          autoWidth = FALSE,
-          pageLength = 25,
-          scrollX = TRUE, scrollY = FALSE,
-          lengthMenu = list(c(25, 50, -1), c("25", "50", "All"))
-        )
+          dom = "tp",
+          autoWidth = TRUE,
+          pageLength = -1,
+          scrollX = TRUE,
+          scrollY = 500,
+          scroller = TRUE,
+          deferRender = TRUE#,
+          #lengthMenu = list(c(25, 50, -1), c("25", "50", "All"))
+        ),
+        extensions = "Responsive"
       )
   })
 
