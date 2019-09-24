@@ -54,12 +54,14 @@ shinyUI(
                 options = list(
                   create = TRUE,
                   placeholder = "Pick a show – if it's not listed yet I'll look it up",
-                  maxOptions = 25,
+                  maxOptions = 50,
                   maxItems = 1
                 )
               ),
               `data-proxy-click` = "get_show"
             ),
+            # Not displayed (ever)
+            # Only used as a proxy
             hidden(actionButton(
               inputId = "get_show",
               label = " Do the thing with the stuff",

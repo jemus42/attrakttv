@@ -16,3 +16,7 @@ h2, .h2 {
   text-align: center;
 }
 
+/* This is not applied for some reason */
+.img-responsive, .img-rounded, .show-poster {
+  max-height: 250px;
+}

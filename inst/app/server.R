@@ -42,7 +42,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # Show info reactiveEvent ----
+  # show_info() reactiveEvent ----
   show_info <- eventReactive(input$shows_cached, label = "show_info()", {
 
     query_slug <- getQueryString(session)[['show']] %||% ""
@@ -172,7 +172,8 @@ shinyServer(function(input, output, session) {
         column(
           10, offset = 1,
           h2("Nothing found :("),
-          p("Try entering the show title, but like... try harder.")
+          p("Try entering the show title, but like... try harder.",
+            style = "text-align: center;")
         )
       )
       return(res)
@@ -224,17 +225,18 @@ shinyServer(function(input, output, session) {
       wellPanel(
         fluidRow(
           column(
-            2,
+            3,
             class = "hidden-xs",
             tags$figure(
               img(
                 src = show$show_poster,
-                class = "img-responsive img-rounded"
+                class = "img-responsive img-rounded show-poster",
+                style = "max-height: 250px;"
               )
             )
           ),
           column(
-            10,
+            9,
             p(class = "lead", stringr::str_trunc(show$overview, 200, "right")),
             summary_table
           )
@@ -276,12 +278,13 @@ shinyServer(function(input, output, session) {
           "First Aired" = "first_aired"
         ),
         rownames = FALSE, style = "bootstrap",
-        filter = "top", fillContainer = TRUE,
+        filter = "top", fillContainer = FALSE,
         options = list(
           dom = "ltp",
           autoWidth = FALSE,
-          pageLength = 10,
-          scrollX = TRUE, scrollY = FALSE
+          pageLength = 25,
+          scrollX = TRUE, scrollY = FALSE,
+          lengthMenu = list(c(25, 50, -1), c("25", "50", "All"))
         )
       )
   })

@@ -45,7 +45,11 @@ cached_shows <- cache_shows_tbl %>%
   sample_frac(1)
 
 show_ids <- paste0("cache:", cached_shows$show_id)
-names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
+names(show_ids) <- glue(
+  "{cached_shows$title} ({cached_shows$year})"
+  ) %>%
+  as.character()
+# Append empty string to initialize empty (with displayed placeholder text)
 show_ids <- c("", show_ids)
 
 # Helper functions ----
