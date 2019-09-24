@@ -97,10 +97,21 @@ shinyUI(
           h2(
             tags$a(href = "#episodes_table", `data-toggle` = "collapse", "Episodes"),
             style = "text-align: center;"
-          ),          hr(),
-          column(id = "episodes_table",
-           width = 12, class = "episodes_table_column",
-           DT::DTOutput(outputId = "show_episodes_table", width = "100%")
+          ),
+          hr(),
+          tabsetPanel(type = "pills", id = "episode_tabset", selected = "Plot",
+            tabPanel(title = "Table", icon = icon("table"),  id = "episodes_table_tab",
+              column(id = "episodes_table",
+                     width = 12, class = "episodes_table_column",
+                     DT::DTOutput(outputId = "show_episodes_table", width = "100%")
+              )
+            ),
+            tabPanel(title = "Plot", icon = icon("chart-line"), id = "episodes_plot_tab",
+              column(id = "episodes_plot",
+                     width = 12, class = "episodes_table_column",
+                     plotlyOutput("plotly_episodes", height = "500px")
+              )
+            )
           )
         )
       )
@@ -109,8 +120,7 @@ shinyUI(
     footer = div(
       hr(),
       hidden(column(12, id = "debug_info",
-        h3("Debug info"),
-        plotlyOutput("plotly_episodes")
+        h3("Debug info")
       )
     )),
     # Didn't know where else to put it, but this one's a biggie
