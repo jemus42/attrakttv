@@ -33,3 +33,21 @@ h2, .h2 {
 .table th {
    text-align: center;
 }
+
+/* Nope
+.center~ th , .center {
+    border-bottom: #ECF0F1;
+    border-bottom-style: solid;
+    border-bottom-width: 3px;
+}
+
+Also nope
+.second-header {
+    border-bottom: #ECF0F1;
+    border-bottom-style: solid;
+    border-bottom-width: 3px;
+}
+This workd though */
+#secondhead {
+    border-bottom: #ECF0F1 3px solid;
+}
