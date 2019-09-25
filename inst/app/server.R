@@ -365,7 +365,7 @@ shinyServer(function(input, output, session) {
 
     episodes <- lm(rating ~ episode*factor(season) - episode - 1,
                    weights = votes, data = episodes) %>%
-      augment() %>%
+      broom::augment() %>%
       select(.fitted_season = .fitted) %>%
       bind_cols(episodes) %>%
       left_join(
