@@ -21,12 +21,6 @@ library(attrakttv)
 # Database connection -----
 cache_db_con <- cache_db()
 
-onStop(function() {
-  pool::poolClose(pool = cache_db_con)
-})
-
-# on.exit(dbDisconnect(cache_db_con), add = TRUE)
-
 cache_shows_tbl    <- tbl(cache_db_con, "shows")
 cache_posters_tbl  <- tbl(cache_db_con, "posters")
 cache_seasons_tbl  <- tbl(cache_db_con, "seasons")
@@ -40,16 +34,21 @@ bullet <- HTML("&#8226;")
 # mu     <- HTML("&#956;")
 # sigma  <- HTML("&#963;")
 
-cached_shows <- cache_shows_tbl %>%
-  collect() %>%
-  filter(rating >= 7, votes >= 1000) %>%
-  sample_frac(1)
+cached_shows <- cache_shows_tbl %>% collect()
+
+# Jumble around a little so you're not always shown the same few shows
+cached_shows <- bind_rows(
+    cached_shows %>% filter(rating >= 7 & votes >= 1000) %>% sample_frac(1),
+    cached_shows %>% filter(!(rating >= 7 & votes >= 1000))
+  )
+
 
 show_ids <- paste0("cache:", cached_shows$show_id)
 names(show_ids) <- glue(
   "{cached_shows$title} ({cached_shows$year})"
   ) %>%
   as.character()
+
 # Append empty string to initialize empty (with displayed placeholder text)
 show_ids <- c("", show_ids)
 
@@ -79,4 +78,8 @@ show_ids <- c("", show_ids)
 #   )
 # }
 
-
+# Shiny start/stop ----
+# Close pool on stop
+onStop(function() {
+  pool::poolClose(pool = cache_db_con)
+})
