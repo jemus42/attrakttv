@@ -132,7 +132,7 @@ shinyServer(function(input, output, session) {
       collect() %>%
       left_join(current_show_episodes, by = "season") %>%
       transmute(
-        season = season,
+        season = as.character(season),
         title = title,
         aired_total = if_else(
           aired_episodes < episode_count,
@@ -171,7 +171,8 @@ shinyServer(function(input, output, session) {
       collect() %>%
       mutate(
         season_episode = sprintf("s%02de%02d", season, episode),
-        first_aired = unix_date(first_aired)
+        first_aired = unix_date(first_aired),
+        season = as.character(season)
       )
 
     current_show_episodes
@@ -363,16 +364,22 @@ shinyServer(function(input, output, session) {
     episodes <- show_episodes()
     seasons <- show_seasons()
 
+    cli_alert_info("Doing the plotly")
+    str(episodes)
+
     formula_seasons <- if (length(unique(seasons$season)) > 1) {
-      rating ~ episode*factor(season) - episode - 1
+      rating ~ episode*season - episode - 1
     } else {
       rating ~ episode
     }
 
     episodes <- lm(formula_seasons, weights = votes, data = episodes) %>%
       broom::augment() %>%
-      select(.fitted_season = .fitted) %>%
-      bind_cols(episodes) %>%
+      select(.fitted_season = .fitted, episode, season) %>%
+      left_join(
+        episodes,
+        by = c("episode", "season")
+      ) %>%
       left_join(
         seasons %>%
           select(season, season_title = title),
