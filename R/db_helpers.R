@@ -371,8 +371,8 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
 #'
 #' @return Nothing
 #' @export
-#' @importFrom dplyr filter distinct pull
-#' @importFrom purrr walk
+#' @importFrom dplyr filter distinct pull select
+#' @importFrom purrr pwalk
 #' @examples
 #' \dontrun{
 #' cache_update_episodes()
@@ -389,8 +389,16 @@ cache_update_episodes <- function(criterion = "aired") {
     episodes <- episodes %>% filter(first_aired > cache_date)
   }
 
-  episodes %>%
+  shows_to_replace <- episodes %>%
     distinct(show_id) %>%
-    pull(show_id) %>%
-    walk(~cache_add_episodes(.x, replace = TRUE, cache_db_con))
+    left_join(
+      tbl(cache_db_con, "shows") %>% select(show_id, title),
+      by = "show_id"
+    ) %>%
+    collect()
+
+  pwalk(shows_to_replace, ~{
+    cli_h2("Replacing episodes for {.y} ({.x})")
+    cache_add_episodes(.x, replace = TRUE, cache_db_con)
+  })
 }
