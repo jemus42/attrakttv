@@ -17,8 +17,10 @@ Imports:
     dplyr,
     glue,
     httr,
+    kableExtra,
     lubridate,
     magrittr,
+    pool,
     purrr,
     rlang,
     RSQLite,
@@ -27,14 +29,12 @@ Imports:
     shinythemes,
     stringr,
     tibble,
-    tRakt (>= 0.14.0.9000),
-    pool,
-    kableExtra
+    tRakt (>= 0.14.0.9000)
+Suggests: 
+    broom
 Remotes: 
     jemus42/tRakt
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
-Suggests: 
-    broom
