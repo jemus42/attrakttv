@@ -173,6 +173,9 @@ shinyServer(function(input, output, session) {
         season_episode = sprintf("s%02de%02d", season, episode),
         first_aired = unix_date(first_aired),
         season = as.character(season)
+      ) %>%
+      filter(
+        first_aired <= lubridate::today()
       )
 
     current_show_episodes
@@ -314,9 +317,12 @@ shinyServer(function(input, output, session) {
       fillContainer = FALSE,
       options = list(
         dom = "t",
+        pageLength = -1,
         autoWidth = FALSE,
-        scroller = FALSE
-      )
+        scroller = FALSE,
+        scrollCollapse = TRUE
+      ),
+      extensions = "Responsive"
     )
   })
 
@@ -343,7 +349,7 @@ shinyServer(function(input, output, session) {
           "First Aired" = "first_aired"
         ),
         rownames = FALSE, style = "bootstrap",
-        filter = list(position = "top", clear = FALSE, plain = TRUE),
+        filter = list(position = "top", clear = TRUE, plain = TRUE),
         fillContainer = FALSE,
         options = list(
           dom = "t",
