@@ -317,11 +317,14 @@ shinyServer(function(input, output, session) {
       rownames = FALSE, style = "bootstrap",
       fillContainer = FALSE,
       options = list(
-        dom = "t",
-        pageLength = -1,
+        dom = "ptl",
+        pageLength = 15,
         autoWidth = FALSE,
-        scroller = FALSE,
-        scrollCollapse = TRUE
+        #scrollY = 400,
+        #scroller = TRUE,
+        #deferRender = TRUE,
+        scrollCollapse = TRUE,
+        lengthMenu = list(c(15, 30, -1), c("15", "30", "All"))
       ),
       extensions = "Responsive"
     )
@@ -418,6 +421,8 @@ shinyServer(function(input, output, session) {
       ) %>%
       make_hoverinfo()
 
+
+    # plot_ly ----
     plot_ly(
       data = episodes,
       x = ~episode_abs, y = ~rating, color = ~season_title
@@ -438,15 +443,30 @@ shinyServer(function(input, output, session) {
       hoverinfo = "skip"
     ) %>%
     layout(
+      updatemenus = updatemenus,
       xaxis = list(
-        title = "Episode #"
+        title = "Episode #",
+        zeroline = FALSE
       ),
       yaxis = list(
         title = "Rating (1-10)"
       ),
+      showlegend = nrow(seasons) <= 15,
       legend = list(
         orientation = "h",
         x = 0, y = 100
+      ),
+      images = list(
+        list(
+          source = "img/trakt-icon-black.png",
+          xref = "paper",
+          yref = "paper",
+          x = 0,
+          y = 1,
+          sizex = 0.1,
+          sizey = 0.1,
+          opacity = 0.5
+        )
       )
     ) %>%
       config(
