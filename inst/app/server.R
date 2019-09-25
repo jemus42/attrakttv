@@ -363,17 +363,11 @@ shinyServer(function(input, output, session) {
     episodes <- show_episodes()
     seasons <- show_seasons()
 
-    episodes <- episodes %>%
-      bind_cols(
-        episodes %>%
-          group_by(season) %>%
-          group_map(~{
-            lm(rating ~ episode, data = .x) %>%
-              broom::augment() %>%
-              select(.fitted_season = .fitted, season = groups())
-          }) %>%
-          bind_rows()
-      ) %>%
+    episodes <- lm(rating ~ episode*factor(season) - episode - 1,
+                   weights = votes, data = episodes) %>%
+      augment() %>%
+      select(.fitted_season = .fitted) %>%
+      bind_cols(episodes) %>%
       left_join(
         seasons %>%
           select(season, season_title = title),
@@ -403,7 +397,8 @@ shinyServer(function(input, output, session) {
       y = ~.fitted_season, type = "lines", size = I(3),
       line = list(dash = "dash"),
       legendgroup = ~season,
-      showlegend = FALSE
+      showlegend = FALSE,
+      hoverinfo = "skip"
     ) %>%
     layout(
       xaxis = list(
