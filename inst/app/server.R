@@ -441,7 +441,26 @@ shinyServer(function(input, output, session) {
         orientation = "h",
         x = 0, y = 100
       )
-    )
+    ) %>%
+      config(
+        staticPlot = FALSE, displayModeBar = TRUE,
+        editable = FALSE, sendData = FALSE, displaylogo = FALSE,
+        modeBarButtonsToRemove = list(
+          "toImage",
+          "sendDataToCloud",
+          "editInChartStudio",
+          "hoverCompareCartesian",
+          "hoverClosestCartesian",
+          "select2d",
+          "lasso2d",
+          # "zoom2d",
+          "zoomIn2d", "zoomOut2d",
+          "resetViews", "resetScale2d",
+          "toggleSpikelines"
+        )
+      )
+
+
     # p <- current_show_episodes %>%
     #   mutate(season = factor(season)) %>%
     #   ggplot(aes(x = episode, y = rating, fill = season, color = season)) +
