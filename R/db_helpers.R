@@ -284,7 +284,7 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
   # Delete if already cached and replace = TRUE
   if (already_cached & replace) {
     if (getOption("caching_debug", default = FALSE)) {
-      cli_alert_info("Deleting and replacing show '{current_id}' at '{table_name}'")
+      cli_alert_danger("Deleting and replacing show '{current_id}' at '{table_name}'")
     }
 
     query <- glue_sql("
