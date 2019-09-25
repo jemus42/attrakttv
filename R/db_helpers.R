@@ -26,12 +26,15 @@ cache_db_path <- function(name = "tRakt.db") {
 #' }
 cache_db <- function(pool = TRUE, path = cache_db_path()) {
   if (pool) {
-    dbPool(drv = SQLite(), dbname = cache_db_path())
+    dbPool(
+      drv = SQLite(),
+      dbname = cache_db_path(),
+      idleTimeout = 300
+    )
   } else {
     dbConnect(SQLite(), cache_db_path())
   }
 }
-
 
 #' Check if a table exists in db, if not, create it
 #'
@@ -339,6 +342,11 @@ cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
 #' @return Nothing
 #' @export
 #' @importFrom dplyr tbl filter pull
+#' @examples
+#' \dontrun{
+#' cache_drop_old_rows("episodes", 4, cache_db_con)
+#' cache_drop_old_rows("seasons", 4, cache_db_con)
+#' }
 cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
 
   cutoff_time <- days_ago(threshold_days)
@@ -353,4 +361,36 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
     is_id = to_delete,
     cache_db_con = cache_db_con
   )
+}
+
+#' Update outdated episodes (in bulk per show)
+#'
+#' @param criterion `character(1) ["aired"]` Which criterion to use for updating. Currently
+#' only `"aired"` is implemented, which updates all seasons if there are episodes that
+#' aired after `cache_date`
+#'
+#' @return Nothing
+#' @export
+#' @importFrom dplyr filter distinct pull
+#' @importFrom purrr walk
+#' @examples
+#' \dontrun{
+#' cache_update_episodes()
+#' }
+cache_update_episodes <- function(criterion = "aired") {
+
+  # pool doesn't do dbSendStatement yet :(
+  # Need RSQLite for this.
+  cache_db_con <- cache_db(pool = FALSE)
+
+  episodes <- tbl(cache_db_con, "episodes")
+
+  if (criterion == "aired") {
+    episodes <- episodes %>% filter(first_aired > cache_date)
+  }
+
+  episodes %>%
+    distinct(show_id) %>%
+    pull(show_id) %>%
+    walk(~cache_add_episodes(.x, replace = TRUE, cache_db_con))
 }

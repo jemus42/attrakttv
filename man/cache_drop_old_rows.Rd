@@ -19,3 +19,9 @@ Nothing
 \description{
 Drop old rows
 }
+\examples{
+\dontrun{
+cache_drop_old_rows("episodes", 4, cache_db_con)
+cache_drop_old_rows("seasons", 4, cache_db_con)
+}
+}
