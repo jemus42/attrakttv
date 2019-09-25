@@ -1,5 +1,7 @@
 intro_text <- wellPanel(
   id = "intro-wellpanel",
+  img(src = "img/trakt-tall-red-black.svg", width = 100,
+      id = "intro-trakt-logo", style = "float: right; margin-left: 10px; margin-bottom: 10px;"),
   p(
     class = "lead",
     HTML("This is <code>attrakttv</code>, for now at least (naming things is hard).")
@@ -15,6 +17,14 @@ intro_text <- wellPanel(
   h3("How do you even stuff?"),
   p("Select a show from the dropdown menu, or look up a new one by, well, entering a new thing.")
 )
+
+# Image next to dropdown item seems… unhelpful
+# dropdown_item_render <- I("{
+#   option: function(item, escape) {
+#     return '<div>' + escape(item.label) +
+#     '<img src=\"img/trakt-icon-black.svg\" width=20 style=\"float: right;\"/></div>'
+#   }
+# }")
 
 shinyUI(
   navbarPage(
@@ -48,7 +58,7 @@ shinyUI(
             10, offset = 1,
             #h3(icon("search"), "Show Selection"),
             tagAppendAttributes(
-              selectizeInput(
+              selectizeInput(width = "100%",
                 inputId = "shows_cached", label = NULL,
                 choices = show_ids, selected = "",
                 options = list(
@@ -56,6 +66,7 @@ shinyUI(
                   placeholder = "Pick a show – if it's not listed yet I'll look it up",
                   maxOptions = 50,
                   maxItems = 1
+                  # render = dropdown_item_render
                 )
               ),
               `data-proxy-click` = "get_show"
