@@ -443,7 +443,6 @@ shinyServer(function(input, output, session) {
       hoverinfo = "skip"
     ) %>%
     layout(
-      updatemenus = updatemenus,
       xaxis = list(
         title = "Episode #",
         zeroline = FALSE
