@@ -317,7 +317,7 @@ shinyServer(function(input, output, session) {
       rownames = FALSE, style = "bootstrap",
       fillContainer = FALSE,
       options = list(
-        dom = "ptl",
+        dom = "lt",
         pageLength = 15,
         autoWidth = FALSE,
         #scrollY = 400,
