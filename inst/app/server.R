@@ -363,8 +363,13 @@ shinyServer(function(input, output, session) {
     episodes <- show_episodes()
     seasons <- show_seasons()
 
-    episodes <- lm(rating ~ episode*factor(season) - episode - 1,
-                   weights = votes, data = episodes) %>%
+    formula_seasons <- if (length(unique(seasons$season)) > 1) {
+      rating ~ episode*factor(season) - episode - 1
+    } else {
+      rating ~ episode
+    }
+
+    episodes <- lm(formula_seasons, weights = votes, data = episodes) %>%
       broom::augment() %>%
       select(.fitted_season = .fitted) %>%
       bind_cols(episodes) %>%
@@ -383,12 +388,12 @@ shinyServer(function(input, output, session) {
 
     plot_ly(
       data = episodes,
-      x = ~episode_abs, y = ~rating, color = ~season_title #~factor(season, ordered = TRUE)
+      x = ~episode_abs, y = ~rating, color = ~season_title
     ) %>%
     add_markers(
       type = "scattergl", mode = "markers",
       stroke = I("black"),
-      alpha = .75, size = 5, name = ~season_title,#paste0("Season ", season),
+      alpha = .75, size = 5, name = ~season_title,
       legendgroup = ~season,
       text = ~title,
       hoverinfo = "text"
