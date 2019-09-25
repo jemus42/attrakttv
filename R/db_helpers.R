@@ -109,7 +109,8 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
       return(NULL)
     }
   } else if (!is.null(show_id)) {
-    cli_alert_info("{show_id}???")
+    if (getOption("caching_debug")) cli_alert_info("Want to add show '{show_id}'")
+
     show_id <- as.character(show_id)
     already_cached <- is_already_cached("shows", show_id, cache_db_con = cache_db_con)
 
@@ -126,7 +127,7 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
     stop("Gotta pick one yo")
   }
 
-  invisible(ret_show_id)
+  if (!is.null(show_id)) invisible(show_id) else invisible(ret_show_id)
 }
 
 
