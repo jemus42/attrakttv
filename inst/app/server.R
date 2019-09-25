@@ -362,27 +362,44 @@ shinyServer(function(input, output, session) {
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
     episodes <- show_episodes()
-    seasons <- show_seasons()
+    seasons <- show_seasons() %>%
+      select(season, season_title = title)
 
     cli_alert_info("Doing the plotly")
-    str(episodes)
+#
+#     glimpse(seasons)
+#     glimpse(episodes)
 
-    formula_seasons <- if (length(unique(seasons$season)) > 1) {
-      rating ~ episode*season - episode - 1
+    if (length(unique(seasons$season)) > 1) {
+      episodes <- lm(
+        rating ~ episode * season - episode - 1,
+        weights = votes, data = episodes
+      ) %>%
+        broom::augment() %>%
+        select(.fitted_season = .fitted, episode, season) %>%
+        left_join(
+          episodes,
+          by = c("episode", "season")
+        )
     } else {
-      rating ~ episode
+      episodes <- lm(
+        rating ~ episode,
+        weights = votes, data = episodes
+      ) %>%
+        broom::augment() %>%
+        select(.fitted_season = .fitted, episode) %>%
+        left_join(
+          episodes,
+          by = c("episode")
+        )
     }
 
-    episodes <- lm(formula_seasons, weights = votes, data = episodes) %>%
-      broom::augment() %>%
-      select(.fitted_season = .fitted, episode, season) %>%
+    # glimpse(episodes)
+    # glimpse(seasons)
+
+    episodes <- episodes %>%
       left_join(
-        episodes,
-        by = c("episode", "season")
-      ) %>%
-      left_join(
-        seasons %>%
-          select(season, season_title = title),
+        seasons,
         by = "season"
       ) %>%
       arrange(first_aired) %>%
@@ -391,7 +408,8 @@ shinyServer(function(input, output, session) {
         season_title = factor(
           season_title, levels = rev(unique(season_title)), ordered = TRUE
         )
-      )
+      ) %>%
+      make_hoverinfo()
 
     plot_ly(
       data = episodes,
@@ -402,7 +420,7 @@ shinyServer(function(input, output, session) {
       stroke = I("black"),
       alpha = .75, size = 5, name = ~season_title,
       legendgroup = ~season,
-      text = ~title,
+      text = ~hovertext,
       hoverinfo = "text"
     ) %>%
     add_lines(
@@ -420,7 +438,8 @@ shinyServer(function(input, output, session) {
         title = "Rating (1-10)"
       ),
       legend = list(
-        orientation = "v"
+        orientation = "h",
+        x = 0, y = 100
       )
     )
     # p <- current_show_episodes %>%
