@@ -183,8 +183,9 @@ shinyServer(function(input, output, session) {
 
   # show_overview renderUI  ----
   output$show_overview <- renderUI({
-    input$shows_cached
-    show <- isolate(show_info())
+    # input$shows_cached
+    # show <- isolate(show_info())
+    show <- show_info()
     # show_seasons <- show_seasons()
     # cli_alert("renderUI: show_overview")
 
