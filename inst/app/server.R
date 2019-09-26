@@ -1,7 +1,6 @@
 # options(shiny.reactlog = TRUE)
 # library(reactlog)
 
-
 shinyServer(function(input, output, session) {
 
   # Caching observer ----
@@ -53,7 +52,7 @@ shinyServer(function(input, output, session) {
   show_info <- eventReactive(input$shows_cached, label = "show_info()", {
 
     query_slug <- getQueryString(session)[['show']] %||% ""
-    cli_alert_info("query_slug {query_slug}")
+    # cli_alert_info("query_slug {query_slug}")
 
     if (stringr::str_detect(input$shows_cached, "^cache:")) {
       # cli_alert_info("cached show detected {input$shows_cached}")
@@ -78,7 +77,7 @@ shinyServer(function(input, output, session) {
 
     # cli_alert_warning("input_show {input_show}")
     show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
-    # cli_alert_info("pull(show_tmp, slug) {pull(show_tmp, slug)}")
+    cli_alert_info("{lubridate::now('UTC')} - Current show: {pull(show_tmp, slug)}")
 
     if (!identical(query_slug, pull(show_tmp, slug))) {
       updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
@@ -102,7 +101,7 @@ shinyServer(function(input, output, session) {
       mutate(
         show_poster = if_else(show_poster == "", "img/poster-blank.jpg", show_poster)
       )
-  })
+  }, ignoreInit = TRUE)
 
   # show_seasons() ----
   show_seasons <- eventReactive(show_info(), label = "show_seasons()", {
@@ -294,7 +293,7 @@ shinyServer(function(input, output, session) {
       return(NULL)
     }
 
-    seasons <- seasons %>%select(-season)
+    seasons <- seasons %>% select(-season)
 
     sketch <- htmltools::withTags(table(
       class = 'display',
@@ -397,10 +396,7 @@ shinyServer(function(input, output, session) {
     seasons <- show_seasons() %>%
       select(season, season_title = title)
 
-    cli_alert_info("Doing the plotly")
-#
-#     glimpse(seasons)
-#     glimpse(episodes)
+    # cli_alert_info("Doing the plotly")
 
     if (length(unique(seasons$season)) > 1) {
       episodes <- lm(
@@ -548,8 +544,8 @@ shinyServer(function(input, output, session) {
       time = as.numeric(lubridate::now(tzone = "UTC")),
       request = isolate(input$shows_cached)
     )
-    cli_alert("Logging request")
-    check_cache_table("requests", res, cache_db_con)
-    RSQLite::dbWriteTable(cache_db_con, "requests", res, append = TRUE)
+    # cli_alert("Logging request")
+    # check_cache_table("requests", res, cache_db_con)
+    res <- RSQLite::dbWriteTable(cache_db_con, "requests", res, append = TRUE)
   })
 })
