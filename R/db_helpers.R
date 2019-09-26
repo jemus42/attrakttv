@@ -4,11 +4,14 @@
 #'
 #' @return `character(1)`
 #' @export
-#'
+#' @importFrom fs file_size
+#' @importFrom cliapp cli_alert_info
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db") {
-  file.path(getOption("trakt_db_path", default = "~/db"), name)
+  path <- file.path(getOption("trakt_db_path", default = "~/db"), name)
+  cli_alert_info("Database path: {path} ({file_size(path)})")
+  invisible(path)
 }
 
 #' Make a connection to the db
@@ -246,6 +249,7 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #' @importFrom lubridate now
 #' @importFrom glue glue_sql
 #' @importFrom RSQLite dbSendStatement dbClearResult dbWriteTable
+#' @importFrom cliapp cli_alert_danger
 #' @examples
 #' \dontrun{
 #' TRUE
@@ -377,8 +381,9 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
 #'
 #' @return Nothing
 #' @export
-#' @importFrom dplyr filter distinct pull select
+#' @importFrom dplyr filter distinct pull select left_join tbl
 #' @importFrom purrr pwalk
+#' @importFrom cliapp cli_h2
 #' @examples
 #' \dontrun{
 #' cache_update_episodes()

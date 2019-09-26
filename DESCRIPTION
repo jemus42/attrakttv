@@ -29,7 +29,8 @@ Imports:
     shinythemes,
     stringr,
     tibble,
-    tRakt (>= 0.14.0.9000)
+    tRakt (>= 0.14.0.9000),
+    fs
 Suggests: 
     broom
 Remotes: 
