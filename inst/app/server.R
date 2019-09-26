@@ -112,6 +112,10 @@ shinyServer(function(input, output, session) {
     current_show <- show_info()
     current_show_id <- current_show$show_id
 
+    if (current_show$aired_episodes == 0) {
+      return(NULL)
+    }
+
     if (!is_already_cached("seasons", current_show_id, cache_db_con)) {
       cli_alert_success("Adding {current_show_id} episodes to cache")
       cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
@@ -160,6 +164,10 @@ shinyServer(function(input, output, session) {
 
     current_show <- show_info()
     current_show_id <- current_show$show_id
+
+    if (current_show$aired_episodes == 0) {
+      return(NULL)
+    }
 
     # if (!is_already_cached("episodes", current_show_id, cache_db_con)) {
     #   cli_alert_success("Adding {current_show_id} episodes to cache")
@@ -280,8 +288,13 @@ shinyServer(function(input, output, session) {
 
   # DT: Seasons ----
   output$show_seasons_table <- DT::renderDT({
-    seasons <- show_seasons() %>%
-      select(-season)
+    seasons <- show_seasons()
+
+    if (is.null(seasons)) {
+      return(NULL)
+    }
+
+    seasons <- seasons %>%select(-season)
 
     sketch <- htmltools::withTags(table(
       class = 'display',
@@ -334,6 +347,10 @@ shinyServer(function(input, output, session) {
   output$show_episodes_table <- DT::renderDT({
     episodes <- show_episodes()
 
+    if (is.null(episodes)) {
+      return(NULL)
+    }
+
     episodes %>%
       transmute(
         season_episode = season_episode,
@@ -372,6 +389,11 @@ shinyServer(function(input, output, session) {
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
     episodes <- show_episodes()
+
+    if (is.null(episodes)) {
+      return(NULL)
+    }
+
     seasons <- show_seasons() %>%
       select(season, season_title = title)
 
@@ -508,8 +530,11 @@ shinyServer(function(input, output, session) {
       # cat("input$get_show is", input$get_show, "\n")
       hide(id = "intro-wellpanel", anim = TRUE, animType = "slide", time = 1)
       shinyjs::show(id = "show_overview", anim = TRUE, animType = "slide", time = 2)
-      shinyjs::show(id = "season_container", anim = TRUE, animType = "slide", time = 2)
-      shinyjs::show(id = "episodes_container", anim = TRUE, animType = "slide", time = 2)
+
+      if (!is.null(show_seasons())) {
+        shinyjs::show(id = "season_container", anim = TRUE, animType = "slide", time = 2)
+        shinyjs::show(id = "episodes_container", anim = TRUE, animType = "slide", time = 2)
+      }
     }
   })
 
