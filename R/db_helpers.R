@@ -206,6 +206,13 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
   }
 }
 
+#' Add a poster to the cache
+#'
+#' @inheritParams cache_add_show
+#'
+#' @return Nothing
+#' @export
+#' @importFrom dplyr tbl collect filter pull tibble
 cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 
   if (!is_already_cached("posters", show_id, cache_db_con)) {
@@ -220,10 +227,8 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
       show_poster = get_fanart_poster(tvdbid = tvdbid)
     )
 
-    cache_add_data("posters", ., cache_db_con = cache_db_con)
-
+    cache_add_data("posters", res, cache_db_con = cache_db_con)
   }
-
 }
 
 #' Add data to some db table
