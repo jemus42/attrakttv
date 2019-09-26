@@ -11,7 +11,7 @@ intro_text <- wellPanel(
     ", and while not feature complete yet, it's at least a lot faster and less terrible."
   ),
   p("You can look up TV show data from ", a(href = "https://trakt.tv", "trakt.tv"),
-    "and get data on seasons and episodes. Soonish there'll be plots. Hopefully pretty plots."
+    "and get data and plots for seasons and episodes."
   ),
   p("The source is available on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub")),
   h3("How do you even stuff?"),
@@ -53,7 +53,7 @@ shinyUI(
 
       # Control panel ----
       wellPanel(
-        fluidRow(
+        fluidRow(style = "margin-top: 15px;",
           column(
             10, offset = 1,
             #h3(icon("search"), "Show Selection"),
