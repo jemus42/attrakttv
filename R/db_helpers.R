@@ -1,5 +1,6 @@
 #' Get the path to the db file
 #'
+#' The directory is set to `getOption("trakt_db_path", default = "~/db")`.
 #' @param name Optional: Name of db file. Defaults to `tRakt.db`
 #'
 #' @return `character(1)`
@@ -16,7 +17,8 @@ cache_db_path <- function(name = "tRakt.db") {
 
 #' Make a connection to the db
 #' @param path The path to the SQLite db, defaults to [cache_db_path()]
-#' @param pool `logical(1) [TRUE]`: Return a [pool].
+#' @param pool `logical(1) [TRUE]`: Return a [pool::Pool]. Since `pool` doesn't support `dbSendStatement`
+#' (yet?), `pool = FALSE` is required for function that delete rows like [cache_drop_old_rows].
 #' @return A `conn` [DBI] thingy _or_ `pool`.
 #' @export
 #' @importFrom RSQLite dbConnect SQLite
@@ -31,11 +33,11 @@ cache_db <- function(pool = TRUE, path = cache_db_path()) {
   if (pool) {
     dbPool(
       drv = SQLite(),
-      dbname = cache_db_path(),
+      dbname = path,
       idleTimeout = 300
     )
   } else {
-    dbConnect(SQLite(), cache_db_path())
+    dbConnect(SQLite(), path)
   }
 }
 
@@ -96,10 +98,6 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #' @export
 #' @importFrom tRakt trakt.shows.summary
 #' @importFrom cliapp cli_alert_info
-#' @examples
-#' \dontrun{
-#' TRUE
-#' }
 cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
   if (!is.null(show_query)) {
     ret_show_id <- cache_add_show_query(

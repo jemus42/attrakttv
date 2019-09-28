@@ -22,8 +22,3 @@ cache_add_show(show_query = NULL, show_id = NULL, replace = FALSE,
 \description{
 Add a show to the cache
 }
-\examples{
-\dontrun{
-TRUE
-}
-}
