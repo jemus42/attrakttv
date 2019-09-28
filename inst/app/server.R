@@ -127,7 +127,7 @@ shinyServer(function(input, output, session) {
       summarize(
         mean_rating = weighted.mean(rating, w = votes, na.rm = TRUE),
         sum_votes = sum(votes),
-        last_aired = max(first_aired)
+        last_aired = max(first_aired, na.rm = TRUE)
       )
 
     current_show_seasons <- cache_seasons_tbl %>%
@@ -478,8 +478,8 @@ shinyServer(function(input, output, session) {
           source = "img/trakt-icon-black.png",
           xref = "paper",
           yref = "paper",
-          x = 0,
-          y = 1,
+          x = 0.01,
+          y = 0.98,
           sizex = 0.1,
           sizey = 0.1,
           opacity = 0.5
