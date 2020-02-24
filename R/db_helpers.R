@@ -96,7 +96,7 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #'
 #' @return `NULL` _if_ the `search_query` yields no result, the `show_id` otherwise.
 #' @export
-#' @importFrom tRakt trakt.shows.summary
+#' @importFrom tRakt shows_summary
 #' @importFrom cliapp cli_alert_info
 cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
   if (!is.null(show_query)) {
@@ -116,7 +116,7 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
     already_cached <- is_already_cached("shows", show_id, cache_db_con = cache_db_con)
 
     if ((already_cached & replace) | (!already_cached)) {
-      ret <- trakt.shows.summary(show_id, extended = "full")
+      ret <- shows_summary(show_id, extended = "full")
       ret <- cleanup_show_summary(ret)
       cache_add_data("shows", ret, replace, cache_db_con)
 
@@ -138,10 +138,10 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
 #'
 #' @inheritParams cache_add_show
 #' @importFrom cliapp cli_alert_info
-#' @importFrom tRakt trakt.search
+#' @importFrom tRakt search_query
 #' @keywords internal
 cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
-  ret <- trakt.search(
+  ret <- search_query(
     show_query,
     type = "show", n_results = 1, extended = "full"
   )
@@ -175,7 +175,7 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
 #' @return Nothing
 #' @export
 #' @importFrom cliapp cli_alert_info
-#' @importFrom tRakt trakt.seasons.summary
+#' @importFrom tRakt seasons_summary
 #' @importFrom dplyr pull bind_rows select mutate
 #' @examples
 #' \dontrun{
@@ -186,7 +186,7 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
   already_cached <- is_already_cached("episodes", show_id, cache_db_con)
 
   if ((already_cached & replace) | (!already_cached)) {
-    ret <- trakt.seasons.summary(show_id, extended = "full", episodes = TRUE)
+    ret <- seasons_summary(show_id, extended = "full", episodes = TRUE)
 
     episodes <- ret %>%
       pull(episodes) %>%

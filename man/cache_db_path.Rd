@@ -13,7 +13,7 @@ cache_db_path(name = "tRakt.db")
 \code{character(1)}
 }
 \description{
-Get the path to the db file
+The directory is set to \code{getOption("trakt_db_path", default = "~/db")}.
 }
 \examples{
 cache_db_path()

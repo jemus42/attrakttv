@@ -7,7 +7,7 @@
 cache_add_episodes(show_id, replace = FALSE, cache_db_con)
 }
 \arguments{
-\item{show_id}{A show id, in the database the \code{trakt ID} is used.}
+\item{show_id}{A show id, in the database the \verb{trakt ID} is used.}
 
 \item{replace}{\code{logical [FALSE]} Delete (if exists) & replace data?}
 

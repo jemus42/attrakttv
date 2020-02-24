@@ -9,7 +9,7 @@ is_already_cached(table_name, show_id, cache_db_con)
 \arguments{
 \item{table_name}{A db table name, e.g. "shows".}
 
-\item{show_id}{A show id, in the database the \code{trakt ID} is used.}
+\item{show_id}{A show id, in the database the \verb{trakt ID} is used.}
 
 \item{cache_db_con}{A connection, see \link{cache_db}}
 }

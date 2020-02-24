@@ -4,13 +4,17 @@
 \alias{cache_add_show}
 \title{Add a show to the cache}
 \usage{
-cache_add_show(show_query = NULL, show_id = NULL, replace = FALSE,
-  cache_db_con)
+cache_add_show(
+  show_query = NULL,
+  show_id = NULL,
+  replace = FALSE,
+  cache_db_con
+)
 }
 \arguments{
 \item{show_query}{A search query, e.g. "Futurama".}
 
-\item{show_id}{A show id, in the database the \code{trakt ID} is used.}
+\item{show_id}{A show id, in the database the \verb{trakt ID} is used.}
 
 \item{replace}{\code{logical [FALSE]} Delete (if exists) & replace data?}
 

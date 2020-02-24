@@ -1,6 +1,6 @@
 #' Prepare a show info object for the database
 #'
-#' @param show A show object as returned by [tRakt::trakt.shows.summary] or [tRakt::trakt.search]
+#' @param show A show object as returned by [tRakt::shows_summary] or [tRakt::trakt_search_query]
 #' with `extended = "full"`.
 #'
 #' @return a [tibble][tibble::tibble-package]
@@ -9,7 +9,7 @@
 #' @importFrom purrr map_chr
 #' @examples
 #' \dontrun{
-#' tRakt::trakt.search("Futurama", type = "show") %>%
+#' tRakt::trakt_search_query("Futurama", type = "show") %>%
 #'   cleanup_show_summary()
 #' }
 

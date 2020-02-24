@@ -4,8 +4,10 @@
 \alias{attrakttv_app}
 \title{Run attrakttv app}
 \usage{
-attrakttv_app(display.mode = "auto",
-  launch.browser = getOption("shiny.launch.browser", interactive()))
+attrakttv_app(
+  display.mode = "auto",
+  launch.browser = getOption("shiny.launch.browser", interactive())
+)
 }
 \arguments{
 \item{display.mode}{\code{auto} by default, can also be \code{showcase}.

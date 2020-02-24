@@ -7,7 +7,7 @@
 cleanup_show_summary(show)
 }
 \arguments{
-\item{show}{A show object as returned by \link[tRakt:trakt.shows.summary]{tRakt::trakt.shows.summary} or \link[tRakt:trakt.search]{tRakt::trakt.search}
+\item{show}{A show object as returned by \link[tRakt:shows_summary]{tRakt::shows_summary} or \link[tRakt:trakt_search_query]{tRakt::trakt_search_query}
 with \code{extended = "full"}.}
 }
 \value{
@@ -18,7 +18,7 @@ Prepare a show info object for the database
 }
 \examples{
 \dontrun{
-tRakt::trakt.search("Futurama", type = "show") \%>\%
+tRakt::trakt_search_query("Futurama", type = "show") \%>\%
   cleanup_show_summary()
 }
 }
