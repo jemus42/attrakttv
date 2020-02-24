@@ -127,8 +127,8 @@ rating_label <- function(x) {
 #' country_label(c("us", "de", "lwaflaf"))
 country_label <- function(x) {
 
-  country_codes <- tRakt::countries$name
-  names(country_codes) <- tRakt::countries$code
+  country_codes <- tRakt::trakt_countries$name
+  names(country_codes) <- tRakt::trakt_countries$code
   res <- country_codes[x]
   res[is.na(res)] <- "N/A"
   res
@@ -145,8 +145,8 @@ country_label <- function(x) {
 #' language_label(c("us", "de", "lwaflaf"))
 language_label <- function(x) {
 
-  language_codes <- tRakt::languages$name
-  names(language_codes) <- tRakt::languages$code
+  language_codes <- tRakt::trakt_languages$name
+  names(language_codes) <- tRakt::trakt_languages$code
   res <- language_codes[x]
   res[is.na(res)] <- "N/A"
   res
