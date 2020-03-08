@@ -255,7 +255,7 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 
     tvdbid <- tbl(cache_db_con, "shows") %>%
       collect() %>%
-      filter(show_id == "60356") %>%
+      filter(show_id == show_id) %>%
       pull(tvdb)
 
     res <- tibble(
