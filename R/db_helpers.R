@@ -293,6 +293,7 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
   # TRUE   | FALSE   | -> do nothing
   # FALSE  | TRUE    | -> write
   # FALSE  | FALSE   | -> write
+  browser()
   new_data <- new_data %>%
     mutate(cache_date = as.numeric(now(tzone = "UTC")))
 
