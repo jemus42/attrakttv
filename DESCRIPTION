@@ -30,7 +30,9 @@ Imports:
     stringr,
     tibble,
     tRakt (>= 0.15.0.9000),
-    fs
+    fs,
+    plotly,
+    DT
 Suggests: 
     broom
 Remotes: 

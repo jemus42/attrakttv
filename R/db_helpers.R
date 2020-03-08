@@ -1,6 +1,6 @@
 #' Get the path to the db file
 #'
-#' The directory is set to `getOption("trakt_db_path", default = "~/db")`.
+#' The directory is set to `Sys.getenv("trakt_db_path", unset = tempdir())`.
 #' @param name Optional: Name of db file. Defaults to `tRakt.db`
 #'
 #' @return `character(1)`
@@ -10,7 +10,7 @@
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db") {
-  path <- file.path(getOption("trakt_db_path", default = "~/db"), name)
+  path <- file.path(Sys.getenv("trakt_db_path", unset = tempdir()), name)
   cli_alert_info("Database path: {path} ({file_size(path)})")
   invisible(path)
 }
@@ -39,6 +39,37 @@ cache_db <- function(pool = TRUE, path = cache_db_path()) {
   } else {
     dbConnect(SQLite(), path)
   }
+}
+
+#' Inititale database based on seed data
+#'
+#' Creates tables in db at `path` if not existing yet.
+#' @param path Defaults to `cache_db_path()`.
+#' @param cache_db_con Defaults to `cache_db(pool = FALSE)`
+#' @importFrom RSQLite dbListTables dbCreateTable dbDisconnect
+#' @return Nothing
+#' @export
+db_init <- function(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE)) {
+
+  tables_existing <- dbListTables(cache_db_con)
+
+  if ("shows" %in% tables_existing) {
+    dbCreateTable(cache_db_con, name = "shows", fields = seed_shows)
+  }
+  if ("seasons" %in% tables_existing) {
+    dbCreateTable(cache_db_con, name = "seasons", fields = seed_seasons)
+  }
+  if ("episodes" %in% tables_existing) {
+    dbCreateTable(cache_db_con, name = "episodes", fields = seed_episodes)
+  }
+  if ("requests" %in% tables_existing) {
+    dbCreateTable(cache_db_con, name = "requests", fields = seed_requests)
+  }
+  if ("posters" %in% tables_existing) {
+    dbCreateTable(cache_db_con, name = "posters", fields = seed_posters)
+  }
+
+  dbDisconnect(cache_db_con)
 }
 
 #' Check if a table exists in db, if not, create it
@@ -110,7 +141,7 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
       return(NULL)
     }
   } else if (!is.null(show_id)) {
-    if (getOption("caching_debug")) cli_alert_info("Want to add show '{show_id}'")
+    if (getOption("caching_debug", default = FALSE)) cli_alert_info("Want to add show '{show_id}'")
 
     show_id <- as.character(show_id)
     already_cached <- is_already_cached("shows", show_id, cache_db_con = cache_db_con)
@@ -121,7 +152,7 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
       cache_add_data("shows", ret, replace, cache_db_con)
 
       ret_show_id <- ret$show_id
-    } else if (getOption("caching_debug")) {
+    } else if (getOption("caching_debug", default = FALSE)) {
       cli_alert_info("Show '{show_id}' already cached, not downloading")
     }
   } else {
@@ -161,7 +192,7 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
       replace = replace,
       cache_db_con = cache_db_con
     )
-  } else if (getOption("caching_debug")) {
+  } else if (getOption("caching_debug", default = FALSE)) {
     cli_alert_info("Show '{ret$show_id}' already cached, not updating")
   }
 
@@ -200,7 +231,7 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
 
     cache_add_data("seasons", seasons, replace = replace, cache_db_con)
     cache_add_data("episodes", episodes, replace = replace, cache_db_con)
-  } else if (getOption("caching_debug")) {
+  } else if (getOption("caching_debug", default = FALSE)) {
     cli_alert_info(
       "Episodes for '{show_id}' already cached, not replacing"
     )
@@ -370,6 +401,9 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
     cache_db_con = cache_db_con
   )
 }
+
+
+# Cache updating ----
 
 #' Update outdated episodes (in bulk per show)
 #'
