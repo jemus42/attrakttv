@@ -7,13 +7,17 @@
   # toset <- !(names(op.trakt) %in% names(op))
   # if (any(toset)) options(op.trakt[toset])
 
-  if (!file.exists(Sys.getenv("trakt_db_path", unset = tempdir()))) {
-    dir.create(Sys.getenv("trakt_db_path", unset = "~/db"), recursive = TRUE)
+  # local({
+  #   temp_path <- file.path(system.file(package = "attrakttv"), "db")
+  #
+  #   if (!file.exists(Sys.getenv("trakt_db_path", unset = temp_path))) {
+  #     dir.create(Sys.getenv("trakt_db_path", unset = temp_path), recursive = TRUE)
+  #
+  #     db_init()
+  #   }
+  #
+  # })
 
-    db_init()
-  }
-
-  invisible()
 }
 
 

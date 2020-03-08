@@ -13,7 +13,8 @@ cache_db_path(name = "tRakt.db")
 \code{character(1)}
 }
 \description{
-The directory is set to \code{getOption("trakt_db_path", default = "~/db")}.
+The directory is set to \code{Sys.getenv("trakt_db_path")}, with a temporary location in
+the package's installation directory if the variable is not set.
 }
 \examples{
 cache_db_path()

@@ -44,13 +44,18 @@ cached_shows <- bind_rows(
 
 
 show_ids <- paste0("cache:", cached_shows$show_id)
-names(show_ids) <- glue(
-  "{cached_shows$title} ({cached_shows$year})"
-  ) %>%
-  as.character()
 
-# Append empty string to initialize empty (with displayed placeholder text)
-show_ids <- c("", show_ids)
+if (show_ids == "cache:") {
+  show_ids <- ""
+} else {
+  names(show_ids) <- glue(
+    "{cached_shows$title} ({cached_shows$year})"
+  ) %>%
+    as.character()
+
+  # Append empty string to initialize empty (with displayed placeholder text)
+  show_ids <- c("", show_ids)
+}
 
 # Helper functions ----
 

@@ -1,6 +1,7 @@
 #' Get the path to the db file
 #'
-#' The directory is set to `Sys.getenv("trakt_db_path", unset = tempdir())`.
+#' The directory is set to `Sys.getenv("trakt_db_path")`, with a temporary location in
+#' the package's installation directory if the variable is not set.
 #' @param name Optional: Name of db file. Defaults to `tRakt.db`
 #'
 #' @return `character(1)`
@@ -10,7 +11,9 @@
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db") {
-  path <- file.path(Sys.getenv("trakt_db_path", unset = tempdir()), name)
+  temp_path <- file.path(system.file(package = "attrakttv"), "db")
+
+  path <- file.path(Sys.getenv("trakt_db_path", unset = temp_path), name)
   cli_alert_info("Database path: {path} ({file_size(path)})")
   invisible(path)
 }
@@ -53,19 +56,19 @@ db_init <- function(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE
 
   tables_existing <- dbListTables(cache_db_con)
 
-  if ("shows" %in% tables_existing) {
+  if (!("shows" %in% tables_existing)) {
     dbCreateTable(cache_db_con, name = "shows", fields = seed_shows)
   }
-  if ("seasons" %in% tables_existing) {
+  if (!("seasons" %in% tables_existing)) {
     dbCreateTable(cache_db_con, name = "seasons", fields = seed_seasons)
   }
-  if ("episodes" %in% tables_existing) {
+  if (!("episodes" %in% tables_existing)) {
     dbCreateTable(cache_db_con, name = "episodes", fields = seed_episodes)
   }
-  if ("requests" %in% tables_existing) {
+  if (!("requests" %in% tables_existing)) {
     dbCreateTable(cache_db_con, name = "requests", fields = seed_requests)
   }
-  if ("posters" %in% tables_existing) {
+  if (!("posters" %in% tables_existing)) {
     dbCreateTable(cache_db_con, name = "posters", fields = seed_posters)
   }
 
