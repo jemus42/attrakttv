@@ -18,9 +18,5 @@ attrakttv_app <- function(
     stop("Could not find shiny directory. Try re-installing `attrakttv`.", call. = FALSE)
   }
 
-  if (!file.exists(cache_db_path())) {
-    db_init()
-  }
-
   shiny::runApp(appDir, display.mode = display.mode, launch.browser = launch.browser)
 }
