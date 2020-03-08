@@ -1,7 +1,7 @@
 #' Get the path to the db file
 #'
 #' The directory is set to `Sys.getenv("trakt_db_path")`, with a temporary location in
-#' the package's installation directory if the variable is not set.
+#' `~/.local/attrakttv` if the variable is not set.
 #' @param name Optional: Name of db file. Defaults to `tRakt.db`
 #'
 #' @return `character(1)`
@@ -11,7 +11,8 @@
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db") {
-  temp_path <- file.path(system.file(package = "attrakttv"), "db")
+  temp_path <- file.path("~", ".local", "attrakttv", "db")
+  dir.create(temp_path, recursive = TRUE)
 
   path <- file.path(Sys.getenv("trakt_db_path", unset = temp_path), name)
   cli_alert_info("Database path: {path} ({file_size(path)})")
