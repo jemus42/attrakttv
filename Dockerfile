@@ -1,5 +1,4 @@
-FROM jemus42/attrakttv-base:init
-#FROM rocker/shiny-verse:latest
+FROM jemus42/attrakttv-base:latest
 
 # Add the package directory to the container
 ADD . /attrakttv
@@ -14,8 +13,6 @@ RUN ln -s /usr/local/lib/R/site-library/attrakttv/app /srv/shiny-server
 # Copy secrets to server directory
 COPY --chown=shiny:shiny attrakttv.env /srv/shiny-server/.Renviron
 COPY --chown=shiny:shiny .httr-oauth /srv/shiny-server/.httr-oauth
-
-# RUN chown -R shiny:shiny /home/shiny/
 
 # Expose the shiny server port
 EXPOSE 3838
