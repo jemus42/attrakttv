@@ -14,5 +14,7 @@ RUN ln -s /usr/local/lib/R/site-library/attrakttv/app /srv/shiny-server
 COPY --chown=shiny:shiny attrakttv.env /srv/shiny-server/.Renviron
 COPY --chown=shiny:shiny .httr-oauth /srv/shiny-server/.httr-oauth
 
+# RUN chown -R shiny:shiny /home/shiny/
+
 # Expose the shiny server port
 EXPOSE 3838

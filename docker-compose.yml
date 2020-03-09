@@ -1,0 +1,27 @@
+version: "3.0"
+# Copypasted from rocker/shiny as a starting point
+services:
+  shiny:
+    container_name: attrakttv
+    # image: rocker/shiny
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    user: 'shiny'
+    # Uncomment the lines below to disable application logs STDOUT output
+    # environment:
+    #   - APPLICATION_LOGS_TO_STDOUT=false
+    ports:
+      - '3839:3838'
+    volumes:
+      - 'shiny_logs:/var/log/shiny-server'
+      - 'trakt_db:/home/shiny/'
+      # Comment the line below out for initial testing. With it commented out,
+      # going to localhost:80 in one's web browser will show a "Welcome to
+      # Shiny Server!" diagnostics page.
+      # - './mountpoints/apps:/srv/shiny-server'
+
+volumes:
+  shiny_logs:
+  trakt_db:
