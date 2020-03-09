@@ -31,21 +31,21 @@ shinyUI(
     title = app_title, # tags$a(href = "/", app_title),
     theme = shinythemes::shinytheme("flatly"),
     collapsible = TRUE,
+    header = tags$head(
+      #tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
+      tags$head(tags$link(rel = "shortcut icon", href = "favicon.png")),
+      tags$script(src = "js/matomo.js", type = "application/javascript"),
+      tags$script(src = "js/proxy-click.js", type = "application/javascript"),
+      tags$link(href = "css/tRakt.css", rel = "stylesheet"),
+      tags$noscript(p(img(
+        src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
+        style = "border:0;",
+        alt = ""))
+      )
+    ),
     # Main view ----
-    tabPanel("Main",
+    tabPanel("Show Data",
       icon = icon("tasks"),
-      tags$head(
-        #tags$meta(name = "google-site-verification", content = "fbD3_htmdCUtmrjbI1dAZbsS0sN-T10_U3xAN7W791Y"),
-        tags$head(tags$link(rel = "shortcut icon", href = "favicon.png")),
-        tags$script(src = "js/matomo.js", type = "application/javascript"),
-        tags$script(src = "js/proxy-click.js", type = "application/javascript"),
-        tags$link(href = "css/tRakt.css", rel = "stylesheet"),
-        tags$noscript(p(img(
-          src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
-          style = "border:0;",
-          alt = ""))
-        )
-      ),
       # shinythemes::themeSelector(),
 
       # Intro text ----
@@ -127,14 +127,22 @@ shinyUI(
         )
       )
     ),
+    tabPanel("Changelog", id = "nav-changelog",
+      icon = icon("sticky-note"),
+      fluidRow(
+        column(6, offset = 3,
+          includeMarkdown(system.file("NEWS.md", package = "attrakttv"))
+        )
+      )
+    ),
     # Footer ----
     footer = div(
       hr(),
       hidden(column(12, id = "debug_info",
         h3("Debug info")
-      )
-    )),
-    # Didn't know where else to put it, but this one's a biggie
-    useShinyjs()
+      ),
+      # Didn't know where else to put it, but this one's a biggie
+      useShinyjs()
+    ))
   ) # end of navbarPage
 ) # End of shinyUI
