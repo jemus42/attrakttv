@@ -1,4 +1,5 @@
-FROM rocker/shiny-verse:latest
+FROM jemus42/attrakttv-base:init
+#FROM rocker/shiny-verse:latest
 
 # Add the package directory to the container
 ADD . /attrakttv
