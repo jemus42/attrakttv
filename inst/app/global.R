@@ -50,7 +50,7 @@ cached_shows <- bind_rows(
 
 show_ids <- paste0("cache:", cached_shows$show_id)
 
-if (show_ids == "cache:") {
+if (identical(show_ids, "cache:")) {
   show_ids <- ""
 } else {
   names(show_ids) <- glue(
