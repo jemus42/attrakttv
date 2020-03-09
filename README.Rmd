@@ -39,11 +39,14 @@ Once both `attrakttv.env` and `.httr-oauth` you can run
 
 ```
 docker build -t attrakttv .
+docker run --rm -p 3838:3838 --run-as=shiny attrakttv
 ```
 
 And the app will be running at `localhost:3838`.
 
-Note that currently the SQLite database is ephemeral - I'm working on it. Should just be a volumes thing.
+Note that currently the SQLite database is ephemeral.  
+You can use `docker-compose` with the included `docker-compose.yml` which will put the database in a volume called `trakt_db`.  
+I'm still figuring out what to do with that. Not that the database isn't easily recreatable (and would ideally need regular updating of outdated data anyway), but still.
 
 ## Code of Conduct
 
