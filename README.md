@@ -11,6 +11,11 @@ Just a packaged shiny app relying on
 [{tRakt}](https://github.com/jemus42/tRakt) to get data out of
 <https://trakt.tv> and display it nicely.
 
+You can find it currently deployed at
+[attrakttv.tadaa-data.de](https://attrakttv.tadaa-data.de/).
+
+Please open an issue if you encounter crashes.
+
 ## Installation
 
 You can install the latest version of attrakttv from GitHub:
@@ -19,12 +24,29 @@ You can install the latest version of attrakttv from GitHub:
 remotes::install("jemus42/attrakttv")
 ```
 
-## Docker
+## Usage (Local)
+
+The app needs both credentials for the **trakt.tv** and the
+**fanart.tv** API, see `attrakttv.env-sample` for reference. Plug in
+your keys and either rename the file to `.Renviron` in the current
+working directory or copy these values to your user/global `.Renviron`.
+
+Then you can call `attrakttv::attrakttv_app()` and try to add a show,
+which will then hopefully open a browser window displaying a trakt.tv
+PIN for you to enter at the R console.  
+You can also achieve this by calling any data-retrieving function from
+the `{tRakt}` package.
+
+The the downloaded show data is stored in a SQLite database located
+under `~/.local/attrakttv/db/tRakt.db` by default, but you can change
+that value via the aforementioned configuration file.
+
+## Usage (Docker)
 
 Since this thing requires API keys for both <https://trakt.tv> and
 <https://fanart.tv>, you’ll need to create accounts and get credentials
 for those first.  
-Then plug them into `attrakttv.env-sample` and rename it to
+Then plug them into `attrakttv.env-sample` and save the file as
 `attrakttv.env`.
 
 Next you’ll need to create a `{httr}` OAuth2 token. The easiest way is
@@ -36,11 +58,16 @@ set up, the token should be located at `.httr-oauth`.
 Once both `attrakttv.env` and `.httr-oauth` you can run
 
     docker build -t attrakttv .
+    docker run --rm -p 3838:3838 --run-as=shiny attrakttv
 
 And the app will be running at `localhost:3838`.
 
-Note that currently the SQLite database is ephemeral - I’m working on
-it. Should just be a volumes thing.
+Note that currently the SQLite database is ephemeral.  
+You can use `docker-compose` with the included `docker-compose.yml`
+which will put the database in a volume called `trakt_db`.  
+I’m still figuring out what to do with that. Not that the database isn’t
+easily recreatable (and would ideally need regular updating of outdated
+data anyway), but still.
 
 ## Code of Conduct
 

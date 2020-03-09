@@ -20,18 +20,31 @@ knitr::opts_chunk$set(
 
 Just a packaged shiny app relying on [{tRakt}](https://github.com/jemus42/tRakt) to get data out of https://trakt.tv and display it nicely.
 
+You can find it currently deployed at [attrakttv.tadaa-data.de](https://attrakttv.tadaa-data.de/).
+
+Please open an issue if you encounter crashes.  
+
 ## Installation
 
 You can install the latest version of attrakttv from GitHub:
 
-``` r
+```r
 remotes::install("jemus42/attrakttv")
 ```
 
-## Docker
+## Usage (Local)
+
+The app needs both credentials for the **trakt.tv** and the **fanart.tv** API, see `attrakttv.env-sample` for reference. Plug in your keys and either rename the file to `.Renviron` in the current working directory or copy these values to your user/global `.Renviron`.
+
+Then you can call `attrakttv::attrakttv_app()` and try to add a show, which will then hopefully open a browser window displaying a trakt.tv PIN for you to enter at the R console.  
+You can also achieve this by calling any data-retrieving function from the `{tRakt}` package.
+
+The the downloaded show data is stored in a SQLite database located under `~/.local/attrakttv/db/tRakt.db` by default, but you can change that value via the aforementioned configuration file.
+
+## Usage (Docker)
 
 Since this thing requires API keys for both https://trakt.tv and https://fanart.tv, you'll need to create accounts and get credentials for those first.  
-Then plug them into `attrakttv.env-sample` and rename it to `attrakttv.env`.
+Then plug them into `attrakttv.env-sample` and save the file as `attrakttv.env`.
 
 Next you'll need to create a `{httr}` OAuth2 token. The easiest way is to call some function from `{tRakt}` that uses the trakt.tv API (e.g. `tRakt::search_query("Counterpart")`) which will then prompt you for an authentication PIN and open a corresponding browser window. Once set up, the token should be located at `.httr-oauth`.  
 
