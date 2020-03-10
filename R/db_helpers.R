@@ -11,7 +11,7 @@
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db") {
-  temp_path <- file.path("~", ".local", "attrakttv", "db")
+  temp_path <- file.path("~", ".local", "attrakttv")
   if (!file.exists(temp_path)) dir.create(temp_path, recursive = TRUE)
 
   path <- file.path(Sys.getenv("trakt_db_path", unset = temp_path), name)
