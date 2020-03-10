@@ -69,6 +69,9 @@ mapped to a local volume you have to define via environment variable set
 in `.env`, so `cp .env-sample .env` and plug in your desired path (which
 **must exist**).
 
+Regarding the volume thing: [This was
+helpful](http://blog.code4hire.com/2018/06/define-named-volume-with-host-mount-in-the-docker-compose-file/)
+
 ## Code of Conduct
 
 Please note that the ‘attrakttv’ project is released with a [Contributor
