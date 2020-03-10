@@ -18,13 +18,13 @@ services:
       - 'shiny_logs:/var/log/shiny-server'
       - type: volume
         source: trakt_db
-        target: /home/shiny/
+        target: /home/shiny
         volume:
           nocopy: true
 
 volumes:
   shiny_logs:
-  trakt_db: 
+  trakt_db:
     driver: local
     driver_opts:
       type: local

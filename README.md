@@ -46,8 +46,8 @@ that value via the aforementioned configuration file.
 Since this thing requires API keys for both <https://trakt.tv> and
 <https://fanart.tv>, you’ll need to create accounts and get credentials
 for those first.  
-Then plug them into `attrakttv.env-sample` and save the file as
-`attrakttv.env`.
+Copy the file via `cp attrakttv.env-sample attrakttv.env` and plug in
+your values.
 
 Next you’ll need to create a `{httr}` OAuth2 token. The easiest way is
 to call some function from `{tRakt}` that uses the trakt.tv API
@@ -64,10 +64,10 @@ And the app will be running at `localhost:3838`.
 
 Note that currently the SQLite database is ephemeral.  
 You can use `docker-compose` with the included `docker-compose.yml`
-which will put the database in a volume called `trakt_db`.  
-I’m still figuring out what to do with that. Not that the database isn’t
-easily recreatable (and would ideally need regular updating of outdated
-data anyway), but still.
+which will put the database in a volume called `trakt_db`. This is
+mapped to a local volume you have to define via environment variable set
+in `.env`, so `cp .env-sample .env` and plug in your desired path (which
+**must exist**).
 
 ## Code of Conduct
 
