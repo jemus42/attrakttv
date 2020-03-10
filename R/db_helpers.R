@@ -429,6 +429,7 @@ cache_update_episodes <- function(criterion = "aired") {
   # pool doesn't do dbSendStatement yet :(
   # Need RSQLite for this.
   cache_db_con <- cache_db(pool = FALSE)
+  on.exit(RSQLite::dbDisconnect(cache_db_con))
 
   episodes <- tbl(cache_db_con, "episodes")
 
@@ -448,4 +449,33 @@ cache_update_episodes <- function(criterion = "aired") {
     cli_h2("Replacing episodes for {.y} ({.x})")
     cache_add_episodes(.x, replace = TRUE, cache_db_con)
   })
+}
+
+#' Update data for trending shows on trakt.tv
+#'
+#' @param n `[100]` Number of shows to get, passed to `tRakt::shows_trending()` as `limit`.
+#'
+#' @return Nothing
+#' @export
+#' @importFrom dplyr select
+#' @importFrom tRakt shows_trending
+#' @importFrom purrr pwalk
+#' @importFrom RSQLite dbDisconnect
+#' @examples
+#' cache_update_trending(20)
+cache_update_trending <- function(n = 100) {
+
+  # pool doesn't do dbSendStatement yet :(
+  # Need RSQLite for this.
+  cache_db_con <- cache_db(pool = FALSE)
+  on.exit(dbDisconnect(cache_db_con))
+
+  shows <- shows_trending(limit = n, extended = "min") %>%
+    select(title, trakt)
+
+  pwalk(shows, ~{
+    cli_h2("Replacing episodes for {.y} ({.x})")
+    cache_add_episodes(.y, replace = TRUE, cache_db_con)
+  })
+
 }
