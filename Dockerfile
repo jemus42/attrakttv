@@ -1,4 +1,8 @@
-FROM jemus42/attrakttv-base:latest
+FROM rocker/shiny-verse:latest
+
+# Install dependencies to utilize caching on rebuilds
+RUN install2.r shinythemes shinyjs kableExtra RSQLite pool plotly DT httr DBI cliapp
+RUN R -e "remotes::install_github('jemus42/tRakt')"
 
 # Add the package directory to the container
 ADD . /attrakttv
