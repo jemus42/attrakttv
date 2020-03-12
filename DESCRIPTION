@@ -32,7 +32,8 @@ Imports:
     tRakt (>= 0.15.0.9000),
     fs,
     plotly,
-    DT
+    DT,
+    rappdirs
 Suggests: 
     broom
 Remotes: 

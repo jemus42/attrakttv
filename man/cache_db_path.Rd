@@ -4,17 +4,27 @@
 \alias{cache_db_path}
 \title{Get the path to the db file}
 \usage{
-cache_db_path(name = "tRakt.db")
+cache_db_path(name = "tRakt.db", verbose = TRUE)
 }
 \arguments{
-\item{name}{Optional: Name of db file. Defaults to \code{tRakt.db}}
+\item{name}{\verb{["tRakt.db"]}: Name of db file.}
+
+\item{verbose}{\verb{[TRUE]}: Log the db path to the console.}
 }
 \value{
-\code{character(1)}
+Invisibly: \code{character(1)}: Full path to the db file.
 }
 \description{
-The directory is set to \code{Sys.getenv("trakt_db_path")}, with a temporary location in
-\verb{~/.local/attrakttv} if the variable is not set.
+The directory is set to \code{Sys.getenv("trakt_db_path")}, with a default location
+derived from \code{rappdirs::user_data_dir()} if the variable is not set.
+}
+\details{
+The default directories are:
+\itemize{
+\item macOS: \code{"/Users/<user>/Library/Application Support/attrakttv/<version>/tRakt.db"}
+\item Linux \code{"/home/<user>/.local/share/attrakttv/<version>/tRakt.db"} (\verb{$"XDG_DATA_HOME"})
+\item Windows \verb{""C:/Users/<user>/Local/attrakttv/attrakttv/<version>/tRakt.db""}
+}
 }
 \examples{
 cache_db_path()

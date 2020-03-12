@@ -1,21 +1,33 @@
 #' Get the path to the db file
 #'
-#' The directory is set to `Sys.getenv("trakt_db_path")`, with a temporary location in
-#' `~/.local/attrakttv` if the variable is not set.
-#' @param name Optional: Name of db file. Defaults to `tRakt.db`
+#' The directory is set to `Sys.getenv("trakt_db_path")`, with a default location
+#' derived from `rappdirs::user_data_dir()` if the variable is not set.
 #'
-#' @return `character(1)`
+#' The default directories are:
+#'
+#' - macOS: `"/Users/<user>/Library/Application Support/attrakttv/<version>/tRakt.db"`
+#' - Linux `"/home/<user>/.local/share/attrakttv/<version>/tRakt.db"` (`$"XDG_DATA_HOME"`)
+#' - Windows `""C:/Users/<user>/Local/attrakttv/attrakttv/<version>/tRakt.db""`
+#'
+#' @param name `["tRakt.db"]`: Name of db file.
+#' @param verbose `[TRUE]`: Log the db path to the console.
+#' @return Invisibly: `character(1)`: Full path to the db file.
 #' @export
 #' @importFrom fs file_size
 #' @importFrom cliapp cli_alert_info
+#' @importFrom rappdirs user_data_dir
 #' @examples
 #' cache_db_path()
-cache_db_path <- function(name = "tRakt.db") {
-  temp_path <- file.path("~", ".local", "attrakttv")
-  if (!file.exists(temp_path)) dir.create(temp_path, recursive = TRUE)
+cache_db_path <- function(name = "tRakt.db", verbose = TRUE) {
+  default_path <- rappdirs::user_data_dir(
+    appname = "attrakttv",
+    version = utils::packageVersion("attrakttv")
+  )
 
-  path <- file.path(Sys.getenv("trakt_db_path", unset = temp_path), name)
-  cli_alert_info("Database path: {path} ({file_size(path)})")
+  if (!file.exists(default_path)) dir.create(default_path, recursive = TRUE)
+
+  path <- file.path(Sys.getenv("trakt_db_path", unset = default_path), name)
+  if (verbose) cli_alert_info("Database path: {path} ({file_size(path)})")
   invisible(path)
 }
 
@@ -281,7 +293,7 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #' @importFrom rlang has_name
 #' @importFrom lubridate now
 #' @importFrom glue glue_sql
-#' @importFrom RSQLite dbSendStatement dbClearResult dbWriteTable
+#' @importFrom DBI dbSendStatement dbClearResult dbWriteTable
 #' @importFrom cliapp cli_alert_danger
 #' @examples
 #' \dontrun{
