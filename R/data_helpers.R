@@ -1,6 +1,6 @@
 #' Prepare a show info object for the database
 #'
-#' @param show A show object as returned by [tRakt::shows_summary] or [tRakt::trakt_search_query]
+#' @param show A show object as returned by `tRakt::show_summary()` or `tRakt::search_query()`
 #' with `extended = "full"`.
 #'
 #' @return a [tibble][tibble::tibble-package]
@@ -9,7 +9,7 @@
 #' @importFrom purrr map_chr
 #' @examples
 #' \dontrun{
-#' tRakt::trakt_search_query("Futurama", type = "show") %>%
+#' tRakt::search_query("Futurama", type = "show") %>%
 #'   cleanup_show_summary()
 #' }
 
@@ -95,7 +95,7 @@ days_ago <- function(days = 7L, unix = TRUE) {
 
 #' Label user ratings
 #'
-#' @param x Numeric rating in [1, 10]. Will be rounded to te nearest integer.
+#' @param x Numeric rating in `[1, 10]`. Will be rounded to the nearest integer.
 #'
 #' @return `character` of same length as `x`.
 #' @export

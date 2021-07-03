@@ -6,7 +6,7 @@
 \alias{attrakttv-package}
 \title{attrakttv: A Shiny Application for 'trakt.tv' TV Show Data}
 \description{
-What the package does (one paragraph).
+Retrieve, display, and store data from 'trakt.tv'.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Lukas Burk \email{lukas@tadaa-data.de} (\href{https://orcid.org/0000-0001-7528-3795}{ORCID})
+\strong{Maintainer}: Lukas Burk \email{github@quantenbrot.de} (\href{https://orcid.org/0000-0001-7528-3795}{ORCID})
 
 }
 \keyword{internal}

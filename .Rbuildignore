@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^attrakttv\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
@@ -7,3 +9,5 @@
 ^\.github$
 ^\.httr-oauth$
 ^data-raw$
+^\.env$
+^\.env-sample$

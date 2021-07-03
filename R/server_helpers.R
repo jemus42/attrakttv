@@ -13,7 +13,7 @@ make_hoverinfo <- function(episodes) {
       Episode {episode}: “{title}”
       <b>Runtime</b>: {runtime} mins
       <b>Aired</b>: {first_aired}
-      <b>Rating</b>: {round(rating, 2)} (<i>“{rating_label(rating)}”</i>)
+      <b>Rating</b>: {round(rating, 2)} (<i>\u201c{rating_label(rating)}\u201d</i>)
       Based on {votes} votes.
     "))
 }

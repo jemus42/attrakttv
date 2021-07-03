@@ -7,7 +7,7 @@
 rating_label(x)
 }
 \arguments{
-\item{x}{Numeric rating in \link{1, 10}. Will be rounded to te nearest integer.}
+\item{x}{Numeric rating in \verb{[1, 10]}. Will be rounded to the nearest integer.}
 }
 \value{
 \code{character} of same length as \code{x}.
