@@ -7,13 +7,13 @@
 cache_db(pool = TRUE, path = cache_db_path())
 }
 \arguments{
-\item{pool}{\code{logical(1) [TRUE]}: Return a \link[pool:Pool-class]{pool::Pool}. Since \code{pool} doesn't support \code{dbSendStatement}
+\item{pool}{\code{logical(1) [TRUE]}: Return a \link[pool:Pool]{pool::Pool}. Since \code{pool} doesn't support \code{dbSendStatement}
 (yet?), \code{pool = FALSE} is required for function that delete rows like \link{cache_drop_old_rows}.}
 
 \item{path}{The path to the SQLite db, defaults to \code{\link[=cache_db_path]{cache_db_path()}}}
 }
 \value{
-A \code{conn} \link{DBI} thingy \emph{or} \code{pool}.
+A \code{conn} \link[DBI:DBI]{DBI} thingy \emph{or} \code{pool}.
 }
 \description{
 Make a connection to the db

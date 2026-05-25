@@ -14,7 +14,7 @@
 #' @return Invisibly: `character(1)`: Full path to the db file.
 #' @export
 #' @importFrom fs file_size
-#' @importFrom cliapp cli_alert_info
+#' @importFrom cli cli_alert_info
 #' @importFrom rappdirs user_data_dir
 #' @examples
 #' cache_db_path()
@@ -57,35 +57,20 @@ cache_db <- function(pool = TRUE, path = cache_db_path()) {
   }
 }
 
-#' Inititale database based on seed data
+#' Initialise database file
 #'
-#' Creates tables in db at `path` if not existing yet.
+#' Opens the db at `path` (creating the file if needed) so the SQLite file
+#' exists on disk. Tables are created on demand by [cache_add_data()] using
+#' whatever shape `tRakt` currently returns, so no schema is pre-declared here.
+#'
 #' @param path Defaults to `cache_db_path()`.
 #' @param cache_db_con Defaults to `cache_db(pool = FALSE)`
-#' @importFrom RSQLite dbListTables dbCreateTable dbDisconnect
+#' @importFrom RSQLite dbDisconnect
 #' @return Nothing
 #' @export
 db_init <- function(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE)) {
-
-  tables_existing <- dbListTables(cache_db_con)
-
-  if (!("shows" %in% tables_existing)) {
-    dbCreateTable(cache_db_con, name = "shows", fields = seed_shows)
-  }
-  if (!("seasons" %in% tables_existing)) {
-    dbCreateTable(cache_db_con, name = "seasons", fields = seed_seasons)
-  }
-  if (!("episodes" %in% tables_existing)) {
-    dbCreateTable(cache_db_con, name = "episodes", fields = seed_episodes)
-  }
-  if (!("requests" %in% tables_existing)) {
-    dbCreateTable(cache_db_con, name = "requests", fields = seed_requests)
-  }
-  if (!("posters" %in% tables_existing)) {
-    dbCreateTable(cache_db_con, name = "posters", fields = seed_posters)
-  }
-
   dbDisconnect(cache_db_con)
+  invisible()
 }
 
 #' Check if a table exists in db, if not, create it
@@ -144,7 +129,7 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #' @return `NULL` _if_ the `search_query` yields no result, the `show_id` otherwise.
 #' @export
 #' @importFrom tRakt shows_summary
-#' @importFrom cliapp cli_alert_info
+#' @importFrom cli cli_alert_info
 cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
   if (!is.null(show_query)) {
     ret_show_id <- cache_add_show_query(
@@ -184,7 +169,7 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
 #' Just a workhorse behind [cache_add_show].
 #'
 #' @inheritParams cache_add_show
-#' @importFrom cliapp cli_alert_info
+#' @importFrom cli cli_alert_info
 #' @importFrom tRakt search_query
 #' @keywords internal
 cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
@@ -221,7 +206,7 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
 #' @inheritParams cache_add_show
 #' @return Nothing
 #' @export
-#' @importFrom cliapp cli_alert_info
+#' @importFrom cli cli_alert_info
 #' @importFrom tRakt seasons_summary
 #' @importFrom dplyr pull bind_rows select mutate
 #' @examples
@@ -287,14 +272,14 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #'
 #' @return Nothing
 #' @export
-#' @importFrom cliapp cli_alert_info cli_alert_success
+#' @importFrom cli cli_alert_info cli_alert_success
 #' @importFrom DBI dbWriteTable dbSendStatement dbClearResult
 #' @import dplyr
 #' @importFrom rlang has_name
 #' @importFrom lubridate now
 #' @importFrom glue glue_sql
 #' @importFrom DBI dbSendStatement dbClearResult dbWriteTable
-#' @importFrom cliapp cli_alert_danger
+#' @importFrom cli cli_alert_danger
 #' @examples
 #' \dontrun{
 #' TRUE
@@ -431,7 +416,7 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
 #' @export
 #' @importFrom dplyr filter distinct pull select left_join tbl
 #' @importFrom purrr pwalk
-#' @importFrom cliapp cli_h2
+#' @importFrom cli cli_h2
 #' @examples
 #' \dontrun{
 #' cache_update_episodes()

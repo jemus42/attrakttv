@@ -7,14 +7,19 @@
 cleanup_show_summary(show)
 }
 \arguments{
-\item{show}{A show object as returned by \code{tRakt::show_summary()} or \code{tRakt::search_query()}
-with \code{extended = "full"}.}
+\item{show}{A show object as returned by \code{tRakt::shows_summary()} or
+\code{tRakt::search_query()} with \code{extended = "full"}.}
 }
 \value{
 a \link[tibble:tibble-package]{tibble}
 }
 \description{
-Prepare a show info object for the database
+Normalises results from \code{tRakt::shows_summary()} or \code{tRakt::search_query()}
+(\code{extended = "full"}) into a stable column set safe for SQLite storage:
+list-columns are flattened or dropped, the \code{trakt} id is renamed to
+\code{show_id}, and search-only columns (\code{score}, \code{type}, \code{social_ids}) and the
+summary-only \code{trailer}/\code{total_runtime} are removed so both call paths
+produce the same shape.
 }
 \examples{
 \dontrun{

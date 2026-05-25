@@ -1,25 +1,41 @@
 #' Prepare a show info object for the database
 #'
-#' @param show A show object as returned by `tRakt::show_summary()` or `tRakt::search_query()`
-#' with `extended = "full"`.
+#' Normalises results from `tRakt::shows_summary()` or `tRakt::search_query()`
+#' (`extended = "full"`) into a stable column set safe for SQLite storage:
+#' list-columns are flattened or dropped, the `trakt` id is renamed to
+#' `show_id`, and search-only columns (`score`, `type`, `social_ids`) and the
+#' summary-only `trailer`/`total_runtime` are removed so both call paths
+#' produce the same shape.
+#'
+#' @param show A show object as returned by `tRakt::shows_summary()` or
+#' `tRakt::search_query()` with `extended = "full"`.
 #'
 #' @return a [tibble][tibble::tibble-package]
 #' @export
-#' @importFrom dplyr mutate select matches rename
+#' @importFrom dplyr mutate rename any_of
 #' @importFrom purrr map_chr
 #' @examples
 #' \dontrun{
 #' tRakt::search_query("Futurama", type = "show") %>%
 #'   cleanup_show_summary()
 #' }
-
 cleanup_show_summary <- function(show) {
-  show %>%
-    select(-matches("^type$|^score$|^avail.*translations$")) %>%
-    mutate(
-      genres = map_chr(genres, paste0, collapse = ", ")
-    ) %>%
-    rename(show_id = trakt)
+  keep <- c(
+    "trakt", "slug", "title", "year", "overview", "tagline", "status",
+    "country", "language", "network", "runtime", "rating", "votes",
+    "comment_count", "aired_episodes", "first_aired", "updated_at",
+    "genres", "certification", "airs_day", "airs_time", "airs_timezone",
+    "original_title", "homepage", "imdb", "tmdb", "tvdb",
+    "plex_guid", "plex_slug"
+  )
+
+  show <- show[, intersect(keep, names(show)), drop = FALSE]
+
+  if ("genres" %in% names(show)) {
+    show$genres <- map_chr(show$genres, paste0, collapse = ", ")
+  }
+
+  rename(show, show_id = "trakt")
 }
 
 #' Get a poster from fanart.tv
@@ -65,7 +81,7 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   if (is.character(url) & !(identical(url, character(0)))) {
     url
   } else {
-    cliapp::cli_alert_danger("No fanart: {ret$name} ({tvdbid})")
+    cli::cli_alert_danger("No fanart: {ret$name} ({tvdbid})")
     character(1)
   }
 }

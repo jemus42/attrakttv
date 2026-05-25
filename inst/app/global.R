@@ -13,13 +13,13 @@ library(dplyr)
 library(glue)
 library(purrr)
 library(stringr)
-library(cliapp)
+library(cli)
 library(kableExtra)
 library(attrakttv)
 
 # Init db if needed
 if (!file.exists(cache_db_path())) {
-  cliapp::cli_alert_warning("Trying to init db at {cache_db_path()}")
+  cli::cli_alert_warning("Trying to init db at {cache_db_path()}")
   db_init()
 }
 

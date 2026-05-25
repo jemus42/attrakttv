@@ -2,7 +2,7 @@
 % Please edit documentation in R/db_helpers.R
 \name{db_init}
 \alias{db_init}
-\title{Inititale database based on seed data}
+\title{Initialise database file}
 \usage{
 db_init(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE))
 }
@@ -15,5 +15,7 @@ db_init(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE))
 Nothing
 }
 \description{
-Creates tables in db at \code{path} if not existing yet.
+Opens the db at \code{path} (creating the file if needed) so the SQLite file
+exists on disk. Tables are created on demand by \code{\link[=cache_add_data]{cache_add_data()}} using
+whatever shape \code{tRakt} currently returns, so no schema is pre-declared here.
 }
