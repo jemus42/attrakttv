@@ -543,17 +543,15 @@ shinyServer(function(input, output, session) {
       x = ~season_label,
       y = ~rating,
       type = "box",
+      name = "Episode ratings",
       boxpoints = box_points,
       jitter = 0.3,
       pointpos = 0,
-      marker = list(size = 4, opacity = 0.6),
-      line = list(width = 1.2),
+      marker = list(size = 4, opacity = 0.6, color = "#ED1C24"),
+      line = list(width = 1.2, color = "#ED1C24"),
       fillcolor = "rgba(237, 28, 36, 0.18)",
-      color = I("#ED1C24"),
-      hovertemplate = paste0(
-        "%{x}<br>",
-        "Rating: %{y:.1f}<extra></extra>"
-      )
+      hoverinfo = "y",
+      hoverlabel = list(namelength = -1)
     ) %>%
       layout(
         showlegend = FALSE,
