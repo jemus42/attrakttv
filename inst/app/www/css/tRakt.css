@@ -1,57 +1,44 @@
-.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
-    color: #FFF;
-}
+/* Most styling now comes from _brand.yml + bs_theme(version=5).
+   Keep only the bits bslib cannot express directly. */
 
-.selectize-input {
-    min-height: 50px;
-}
-
-.selectize-dropdown,
-.selectize-input,
-.selectize-input input {
-  line-height: 40px;
-}
-
-.item {
-  font-size: larger;
-}
-
-h2, .h2 {
-  text-align: center;
-}
-
-/* This is not applied for some reason */
-.img-responsive, .img-rounded, .show-poster {
-  max-height: 250px;
-}
-
-/* Neither is this :( */
-#show_seasons_table {
-  margin-left: auto;
-}
-
-.datatables .html-widget .html-widget-output {
-    margin-left: auto;
-}
-
-.table th {
-   text-align: center;
-}
-
-/* Nope
-.center~ th , .center {
-    border-bottom: #ECF0F1;
-    border-bottom-style: solid;
-    border-bottom-width: 3px;
-}
-
-Also nope
-.second-header {
-    border-bottom: #ECF0F1;
-    border-bottom-style: solid;
-    border-bottom-width: 3px;
-}
-This workd though */
+/* DT seasons table: tighter second-row column-group separator. */
 #secondhead {
-    border-bottom: #ECF0F1 3px solid;
+    border-bottom: var(--bs-border-color) 3px solid;
+}
+.table th {
+    text-align: center;
+}
+
+/* Poster framing in the show overview card. */
+.show-poster-frame {
+    text-align: center;
+    margin-bottom: 0;
+}
+.show-poster {
+    max-height: 240px;
+    object-fit: cover;
+}
+
+/* Selectize visual tweaks: a bit more breathing room without bs_theme reaching it. */
+.selectize-input {
+    min-height: 44px;
+}
+.item {
+    font-size: larger;
+}
+
+/* Intro card: slim padding so it feels like a hint, not a hero. */
+.intro-card .card-body {
+    padding: 0.85rem 1rem;
+}
+
+/* Compact spacing between major sections. */
+.section-block {
+    margin-top: 1rem;
+}
+
+/* Footer disclaimer: visible but unobtrusive. */
+.app-footer {
+    border-top: 1px solid var(--bs-border-color);
+    margin-top: 1.5rem;
 }

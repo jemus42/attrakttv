@@ -1,0 +1,33 @@
+meta:
+  name: attrakttv
+  link: https://github.com/jemus42/attrakttv
+
+# Only define accent + fonts here. Letting bslib's "shiny" preset drive
+# background/foreground per light/dark mode -- the brand.yml R package
+# does not yet support light/dark color variants, so an explicit `background:`
+# would override BS5's color-mode toggling.
+color:
+  palette:
+    trakt-red: "#ED1C24"
+    # Bootstrap colour aliases (so brand-aware tooling picks them up)
+    red: trakt-red
+  primary: trakt-red
+  danger: trakt-red
+
+typography:
+  fonts:
+    - family: Inter
+      source: google
+      weight: [400, 500, 600, 700]
+    - family: JetBrains Mono
+      source: google
+      weight: [400, 500]
+  base:
+    family: Inter
+    size: 15px
+    line-height: 1.55
+  headings:
+    family: Inter
+    weight: 600
+  monospace:
+    family: JetBrains Mono

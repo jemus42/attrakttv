@@ -38,6 +38,48 @@ cleanup_show_summary <- function(show) {
   rename(show, show_id = "trakt")
 }
 
+#' Normalise a seasons tibble for the database
+#'
+#' Keeps a stable subset of columns from `tRakt::seasons_summary()` output so
+#' the seasons table schema is independent of tRakt version drift and per-show
+#' variation in returned fields. List-columns and anything we don't display
+#' are dropped.
+#'
+#' @param seasons The seasons tibble from `tRakt::seasons_summary()`, after
+#' `show_id` has been attached.
+#' @return a [tibble][tibble::tibble-package]
+#' @export
+cleanup_seasons <- function(seasons) {
+  keep <- c(
+    "show_id", "season", "title", "rating", "votes",
+    "first_aired", "aired_episodes", "episode_count",
+    "overview", "network", "updated_at", "total_runtime",
+    "original_title", "tmdb", "tvdb", "plex_guid"
+  )
+  seasons[, intersect(keep, names(seasons)), drop = FALSE]
+}
+
+#' Normalise an episodes tibble for the database
+#'
+#' Keeps a stable subset of columns from the per-episode rows returned by
+#' `tRakt::seasons_summary(episodes = TRUE)`. Same rationale as
+#' [cleanup_seasons()].
+#'
+#' @param episodes The episodes tibble from
+#' `dplyr::bind_rows(seasons_summary(...)$episodes)`, after `show_id` has
+#' been attached.
+#' @return a [tibble][tibble::tibble-package]
+#' @export
+cleanup_episodes <- function(episodes) {
+  keep <- c(
+    "show_id", "season", "episode", "title", "rating", "votes",
+    "first_aired", "comment_count", "runtime", "overview",
+    "released", "updated_at", "original_title", "episode_abs",
+    "episode_type", "imdb", "tmdb", "tvdb", "plex_guid"
+  )
+  episodes[, intersect(keep, names(episodes)), drop = FALSE]
+}
+
 #' Get a poster from fanart.tv
 #'
 #' @param tvdbid The tvdb id.

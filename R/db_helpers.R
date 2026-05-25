@@ -223,12 +223,13 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
     episodes <- ret %>%
       pull(episodes) %>%
       bind_rows() %>%
-      select(-matches("available_translations")) %>%
-      mutate(show_id = show_id)
+      mutate(show_id = show_id) %>%
+      cleanup_episodes()
 
     seasons <- ret %>%
       select(-episodes) %>%
-      mutate(show_id = show_id)
+      mutate(show_id = show_id) %>%
+      cleanup_seasons()
 
     cache_add_data("seasons", seasons, replace = replace, cache_db_con)
     cache_add_data("episodes", episodes, replace = replace, cache_db_con)

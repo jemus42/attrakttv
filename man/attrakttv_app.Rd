@@ -5,11 +5,16 @@
 \title{Run attrakttv app}
 \usage{
 attrakttv_app(
+  port = getOption("attrakttv.port", 7842),
   display.mode = "auto",
   launch.browser = getOption("shiny.launch.browser", interactive())
 )
 }
 \arguments{
+\item{port}{Integer, port to listen on. Defaults to \code{7842} so local
+testing always lands on the same URL. Override with the \code{attrakttv.port}
+option or by passing this argument explicitly.}
+
 \item{display.mode}{\code{auto} by default, can also be \code{showcase}.
 See \link[shiny:runApp]{runApp}.}
 
