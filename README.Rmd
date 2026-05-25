@@ -18,49 +18,89 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Just a packaged shiny app relying on [{tRakt}](https://github.com/jemus42/tRakt) to get data out of https://trakt.tv and display it nicely.
+A Shiny app for browsing TV show episode ratings, built on
+[{tRakt}](https://github.com/jemus42/tRakt) and the
+[trakt.tv](https://trakt.tv) API.
 
-You can find it currently deployed at [attrakttv.tadaa-data.de](https://attrakttv.tadaa-data.de/).
+The app caches show / season / episode data in a local SQLite database so
+repeat lookups are fast, and visualises per-episode rating trajectories
+with [plotly](https://plotly.com/r/).
 
-Please open an issue if you encounter crashes.  
+> attrakttv is an unofficial fan project and is **not affiliated with,
+> endorsed by, or connected to trakt.tv**.
 
 ## Installation
 
-You can install the latest version of attrakttv from GitHub:
+```r
+# pak (recommended) — pulls in the {tRakt} GitHub remote automatically
+pak::pak("jemus42/attrakttv")
+
+# or remotes
+remotes::install_github("jemus42/attrakttv")
+```
+
+## Usage
 
 ```r
-remotes::install("jemus42/attrakttv")
+attrakttv::attrakttv_app()
 ```
 
-## Usage (Local)
+By default the app listens on **http://127.0.0.1:7842** and opens in your
+browser. Override with the `port` argument or the `attrakttv.port` option.
 
-The app needs both credentials for the **trakt.tv** and the **fanart.tv** API, see `attrakttv.env-sample` for reference. Plug in your keys and either rename the file to `.Renviron` in the current working directory or copy these values to your user/global `.Renviron`.
+Cached data is stored in a SQLite database under the platform-appropriate
+data directory (`rappdirs::user_data_dir("attrakttv", <version>)`):
 
-Then you can call `attrakttv::attrakttv_app()` and try to add a show, which will then hopefully open a browser window displaying a trakt.tv PIN for you to enter at the R console.  
-You can also achieve this by calling any data-retrieving function from the `{tRakt}` package.
+| Platform | Default path |
+|----------|--------------|
+| macOS    | `~/Library/Application Support/attrakttv/<version>/tRakt.db` |
+| Linux    | `~/.local/share/attrakttv/<version>/tRakt.db` |
+| Windows  | `%LOCALAPPDATA%/attrakttv/attrakttv/<version>/tRakt.db` |
 
-The the downloaded show data is stored in a SQLite database located under `~/.local/attrakttv/db/tRakt.db` by default, but you can change that value via the aforementioned configuration file.
+Set the `trakt_db_path` environment variable to override the directory.
 
-## Usage (Docker)
+### API credentials
 
-Since this thing requires API keys for both https://trakt.tv and https://fanart.tv, you'll need to create accounts and get credentials for those first.  
-Copy the file via `cp attrakttv.env-sample attrakttv.env` and plug in your values.
+- **trakt.tv:** not required for normal read-only use — `{tRakt}` ships
+  with a scrambled fallback client_secret since 0.17.0, so basic data
+  retrieval works out of the box. Set `trakt_client_id` /
+  `trakt_client_secret` in your `~/.Renviron` if you want your own quota.
+- **fanart.tv:** required to fetch poster images. Sign up at
+  <https://fanart.tv/get-an-api-key/>, then set `fanarttv_api_key` in your
+  `~/.Renviron`. See `attrakttv.env-sample` for the variable names.
 
-Next you'll need to create a `{httr}` OAuth2 token. The easiest way is to call some function from `{tRakt}` that uses the trakt.tv API (e.g. `tRakt::search_query("Counterpart")`) which will then prompt you for an authentication PIN and open a corresponding browser window. Once set up, the token should be located at `.httr-oauth`.  
+Sourcing the included `attrakttv.env-sample` instead of `~/.Renviron` also
+works — it is recognised by `Sys.getenv()` when copied to `.Renviron` in
+the working directory.
 
-Once both `attrakttv.env` and `.httr-oauth` you can run
+## Features
 
+- Search any TV show by title and see per-show metadata, season summary,
+  and per-episode ratings.
+- Caches results to SQLite so subsequent lookups are instant.
+- Built with [{bslib}](https://rstudio.github.io/bslib/) on Bootstrap 5
+  with light/dark mode toggle.
+- Stable URL per show via query params (e.g. `?show=counterpart`).
+
+## Development
+
+```sh
+make install      # pak::local_install
+make launch       # launch the installed app on port 7842
+make launch-dev   # devtools::load_all + run against /tmp/attrakttv-smoke-db
+make document     # devtools::document
+make check        # devtools::check
 ```
-docker build -t attrakttv .
-docker run --rm -p 3838:3838 --run-as=shiny attrakttv
-```
 
-And the app will be running at `localhost:3838`.
+`make launch-dev` uses a throwaway SQLite db at `/tmp/attrakttv-smoke-db`
+so it never pollutes your real cache.
 
-Note that currently the SQLite database is ephemeral.  
-You can use `docker-compose` with the included `docker-compose.yml` which will put the database in a volume called `trakt_db`. This is mapped to a local volume you have to define via environment variable set in `.env`, so `cp .env-sample .env` and plug in your desired path (which **must exist**).
+## Deployment
 
-Regarding the volume thing: [This was helpful](http://blog.code4hire.com/2018/06/define-named-volume-with-host-mount-in-the-docker-compose-file/)
+The included `Dockerfile` / `docker-compose.yml` predate the current
+revival and are pending an overhaul — treat them as starting points only.
+The legacy `.httr-oauth` PIN dance described in older docs is no longer
+required (see API credentials above).
 
 ## Code of Conduct
 

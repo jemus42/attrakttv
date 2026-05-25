@@ -1,5 +1,16 @@
 # attrakttv 0.1.0.9000 (development version)
 
+* New: per-season boxplot in the Seasons view (alongside the existing Table
+  tab) shows the distribution of episode ratings per season. Designed to
+  scale from 1-season shows up to long-runners (35+ seasons); x-axis labels
+  rotate when the season count gets dense.
+* Wired up trakt's current logomark assets:
+  `trakt-logomark.svg` shows as a small accent in the intro card, and the
+  mono variant overlays the episodes rating plot (previously a stale
+  `trakt-icon-black.png` reference that no longer existed).
+* Refreshed the README: drops the stale `.httr-oauth` PIN-dance setup
+  instructions, updates the default cache path to the `rappdirs` location,
+  notes the fixed local port (7842), and documents the new `make` targets.
 * **Facelift.** Migrated from `shinythemes::shinytheme('flatly')` (Bootstrap 3)
   to `bslib::page_navbar()` with `bs_theme(version = 5, brand = TRUE)`. New
   `_brand.yml` defines the trakt-aligned red accent and Inter/JetBrains Mono

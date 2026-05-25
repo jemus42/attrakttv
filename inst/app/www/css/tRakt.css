@@ -31,6 +31,17 @@
 .intro-card .card-body {
     padding: 0.85rem 1rem;
 }
+.intro-card-body {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.intro-logo {
+    flex: 0 0 auto;
+}
+.intro-text {
+    flex: 1 1 auto;
+}
 
 /* Compact spacing between major sections. */
 .section-block {

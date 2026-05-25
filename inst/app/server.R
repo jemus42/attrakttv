@@ -483,14 +483,14 @@ shinyServer(function(input, output, session) {
       ),
       images = list(
         list(
-          source = "img/trakt-icon-black.png",
+          source = "img/trakt-logomark-mono-light.svg",
           xref = "paper",
           yref = "paper",
           x = 0.01,
           y = 0.98,
-          sizex = 0.1,
-          sizey = 0.1,
-          opacity = 0.5
+          sizex = 0.08,
+          sizey = 0.08,
+          opacity = 0.4
         )
       )
     ) %>%
@@ -513,16 +513,72 @@ shinyServer(function(input, output, session) {
       )
 
 
-    # p <- current_show_episodes %>%
-    #   mutate(season = factor(season)) %>%
-    #   ggplot(aes(x = episode, y = rating, fill = season, color = season)) +
-    #   geom_point(size = 3, shape = 21, stroke = .4, color = "black") +
-    #   geom_smooth(method = "lm", se = FALSE, show.legend = FALSE) +
-    #   theme_minimal() +
-    #   labs(x = "Episode #", y = "Rating (1-10)")
-    #
-    # ggplotly(p)
+  })
 
+  # plotly: Seasons (boxplot of episode ratings per season) ----
+  output$plotly_seasons <- renderPlotly({
+    episodes <- show_episodes()
+
+    if (is.null(episodes) || nrow(episodes) == 0) {
+      return(NULL)
+    }
+
+    seasons_n <- length(unique(episodes$season))
+    show_outliers <- nrow(episodes) <= 250  # too crowded for huge shows
+    # For shows with one season, force boxpoints so the box is meaningful
+    # (otherwise a single box with just quartile bars is uninformative).
+    box_points <- if (seasons_n == 1) "all" else if (show_outliers) "outliers" else FALSE
+
+    # Stable categorical x order: numeric season ascending, displayed as "S<n>"
+    season_order <- sort(unique(as.numeric(episodes$season)))
+    episodes <- episodes %>%
+      mutate(season_label = factor(
+        paste0("S", season),
+        levels = paste0("S", season_order),
+        ordered = TRUE
+      ))
+
+    plot_ly(
+      data = episodes,
+      x = ~season_label,
+      y = ~rating,
+      type = "box",
+      boxpoints = box_points,
+      jitter = 0.3,
+      pointpos = 0,
+      marker = list(size = 4, opacity = 0.6),
+      line = list(width = 1.2),
+      fillcolor = "rgba(237, 28, 36, 0.18)",
+      color = I("#ED1C24"),
+      hovertemplate = paste0(
+        "%{x}<br>",
+        "Rating: %{y:.1f}<extra></extra>"
+      )
+    ) %>%
+      layout(
+        showlegend = FALSE,
+        xaxis = list(
+          title = "Season",
+          tickangle = if (seasons_n > 12) -45 else 0,
+          automargin = TRUE
+        ),
+        yaxis = list(
+          title = "Episode rating",
+          zeroline = FALSE,
+          rangemode = "normal"
+        ),
+        margin = list(l = 50, r = 10, t = 10, b = 40)
+      ) %>%
+      config(
+        displaylogo = FALSE,
+        displayModeBar = TRUE,
+        modeBarButtonsToRemove = list(
+          "toImage", "sendDataToCloud", "editInChartStudio",
+          "select2d", "lasso2d",
+          "zoomIn2d", "zoomOut2d",
+          "resetViews", "resetScale2d", "toggleSpikelines"
+        )
+      )
   })
 
 

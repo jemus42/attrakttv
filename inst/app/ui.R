@@ -5,13 +5,25 @@ intro_card <- card(
   id = "intro-card",
   class = "intro-card",
   card_body(
-    p(class = "lead mb-2",
-      "attrakttv lets you quickly inspect TV show ratings on a per-episode basis,",
-      "powered by ", a(href = "https://trakt.tv", "trakt.tv"), " data."
-    ),
-    p(class = "text-muted small mb-0",
-      "Pick a cached show from the dropdown, or type any title to look it up.",
-      " Source is on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub"), "."
+    div(
+      class = "intro-card-body",
+      img(
+        src = "img/trakt-logomark.svg",
+        class = "intro-logo",
+        alt = "trakt logomark",
+        height = "44"
+      ),
+      div(
+        class = "intro-text",
+        p(class = "lead mb-2",
+          "attrakttv lets you quickly inspect TV show ratings on a per-episode basis,",
+          " powered by ", a(href = "https://trakt.tv", "trakt.tv"), " data."
+        ),
+        p(class = "text-muted small mb-0",
+          "Pick a cached show from the dropdown, or type any title to look it up.",
+          " Source is on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub"), "."
+        )
+      )
     )
   )
 )
@@ -81,9 +93,20 @@ shinyUI(tagList(
         div(
           id = "season_container",
           class = "section-block",
-          card(
-            card_header("Seasons"),
-            DT::DTOutput(outputId = "show_seasons_table", width = "100%")
+          navset_card_underline(
+            id = "season_tabset",
+            title = "Seasons",
+            selected = "Table",
+            nav_panel(
+              title = "Table",
+              icon = bs_icon("table"),
+              DT::DTOutput(outputId = "show_seasons_table", width = "100%")
+            ),
+            nav_panel(
+              title = "Plot",
+              icon = bs_icon("box"),
+              plotlyOutput("plotly_seasons", height = "320px")
+            )
           )
         )
       ),
