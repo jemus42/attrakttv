@@ -29,7 +29,7 @@ shinyServer(function(input, output, session) {
     query_slug <- query[['show']]
 
     if (!is.null(query_slug)) {
-      show_tmp <- cache_shows_tbl %>% filter(slug == query_slug) %>% collect()
+      show_tmp <- cache_shows_tbl() %>% filter(slug == query_slug) %>% collect()
       show_id <- show_tmp$show_id
 
       if (!identical(show_id, character(1)) & !is.null(show_id)) {
@@ -61,14 +61,24 @@ shinyServer(function(input, output, session) {
         stringr::str_extract(., "\\d+")
 
     } else if (input$shows_cached != "") {
-      # cli_alert("Adding to cache")
       input_show <- input$shows_cached %>%
         stringr::str_remove(., "^cache:") %>%
         cache_add_show(cache_db_con = cache_db_con)
 
       if (is.null(input_show)) return(NULL)
 
-      # cli_alert_info("input_show after caching attempt is {input_show}")
+      # Refresh the dropdown so the freeform query gets replaced with the
+      # resolved "Title (Year)" label keyed by cache id.
+      shows <- cache_shows_tbl() %>% collect()
+      choices <- c("", setNames(
+        paste0("cache:", shows$show_id),
+        as.character(glue("{shows$title} ({shows$year})"))
+      ))
+      updateSelectizeInput(
+        session, "shows_cached",
+        choices = choices,
+        selected = paste0("cache:", input_show)
+      )
     } else if (!is.null(query_slug)) {
       input_show <- convert_ids(slug = query_slug, cache_db_con = cache_db_con)
     } else {
@@ -76,7 +86,7 @@ shinyServer(function(input, output, session) {
     }
 
     # cli_alert_warning("input_show {input_show}")
-    show_tmp <- cache_shows_tbl %>% filter(show_id == input_show)
+    show_tmp <- cache_shows_tbl() %>% filter(show_id == input_show)
     cli_alert_info("{lubridate::now('UTC')} - Current show: {pull(show_tmp, slug)}")
 
     if (!identical(query_slug, pull(show_tmp, slug))) {
@@ -93,7 +103,7 @@ shinyServer(function(input, output, session) {
 
     show_tmp %>%
       left_join(
-        cache_posters_tbl %>%
+        cache_posters_tbl() %>%
           select(show_id, show_poster),
         by = "show_id"
       ) %>%
@@ -120,7 +130,7 @@ shinyServer(function(input, output, session) {
       cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
     }
 
-    current_show_episodes <- cache_episodes_tbl %>%
+    current_show_episodes <- cache_episodes_tbl() %>%
       filter(show_id == current_show_id) %>%
       collect() %>%
       group_by(season) %>%
@@ -130,7 +140,7 @@ shinyServer(function(input, output, session) {
         last_aired = max(first_aired, na.rm = TRUE)
       )
 
-    current_show_seasons <- cache_seasons_tbl %>%
+    current_show_seasons <- cache_seasons_tbl() %>%
       filter(show_id == current_show_id) %>%
       collect() %>%
       left_join(current_show_episodes, by = "season") %>%
@@ -173,7 +183,7 @@ shinyServer(function(input, output, session) {
     #   cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
     # }
 
-    current_show_episodes <- cache_episodes_tbl %>%
+    current_show_episodes <- cache_episodes_tbl() %>%
       filter(show_id == current_show_id) %>%
       collect() %>%
       mutate(
@@ -190,95 +200,93 @@ shinyServer(function(input, output, session) {
 
   # show_overview renderUI  ----
   output$show_overview <- renderUI({
-    # input$shows_cached
-    # show <- isolate(show_info())
     show <- show_info()
-    # show_seasons <- show_seasons()
-    # cli_alert("renderUI: show_overview")
 
     # Early return for no result
     if (is.null(show)) {
-      res <- fluidRow(
-        column(
-          10, offset = 1,
-          h2("Nothing found :("),
-          p("Try entering the show title, but like... try harder.",
-            style = "text-align: center;")
+      return(card(
+        class = "border-warning",
+        card_body(
+          h4("Nothing found :("),
+          p("Try entering the show title, but like… try harder.")
         )
-      )
-      return(res)
+      ))
     }
 
-    summary_table <- show %>%
-      select(rating, votes, episodes = aired_episodes, runtime) %>%
-      mutate(
-        rating = round(rating, 1),
-        runtime = glue("{runtime}min"),
-        rating = glue("{rating} - “{rating_label(rating)}”")
-      ) %>%
-      mutate_if(is.na, ~ "N/A") %>%
-      rename_all(str_to_title) %>%
-      kable(format = "html", escape = FALSE) %>%
-      kable_styling(
-        full_width = FALSE, font_size = 18, position = "center",
-        bootstrap_options = c("responsive")
-      ) %>%
-      HTML()
+    safe_overview <- if (!is.na(show$overview)) {
+      stringr::str_trunc(show$overview, 380, "right")
+    } else {
+      "No overview available ¯\\_(ツ)_/¯"
+    }
 
-    # links_table <- show %>%
-    #   select(slug, tvdb, imdb, tmdb) %>%
-    #   transmute(
-    #     trakt.tv = glue("https://trakt.tv/shows/{slug}"),
-    #     tvdb = glue("https://www.thetvdb.com/?id={tvdb}&tab=series"),
-    #     IMDb = glue("https://www.imdb.com/title/{imdb}/"),
-    #     TMDB = glue("https://www.themoviedb.org/tv/{tmdb}")
-    #   ) %>%
-    #   gather(Site, url) %>%
-    #   transmute(` ` = cell_spec(Site, link = url)) %>%
-    #   t() %>%
-    #   kable(escape = FALSE) %>%
-    #   kable_styling(full_width = FALSE) %>%
-    #   HTML()
+    rating_rounded <- round(show$rating, 1)
 
-    # Otherwise, do a thing
-    tags$div(
-      h2(
-        a(href = glue("https://trakt.tv/shows/{show$slug}"),
-          glue("{show$title} ({show$year})")),
-        br(),
-        tags$small(
-          HTML(glue("{bullet} {country_label(show$country)} {bullet}
-               {language_label(show$language)} {bullet}
-               {show$network} {bullet} {str_to_title(show$status)} {bullet}"))
+    card(
+      class = "show-overview",
+      card_header(
+        class = "show-header",
+        a(
+          href = glue("https://trakt.tv/shows/{show$slug}"),
+          class = "show-title-link",
+          h3(class = "mb-1", glue("{show$title} ({show$year})"))
+        ),
+        div(
+          class = "show-meta text-muted small",
+          HTML(glue(
+            "{country_label(show$country)} · {language_label(show$language)} · ",
+            "{show$network} · {str_to_title(show$status)}"
+          ))
         )
       ),
-      wellPanel(
-        fluidRow(
-          column(
-            2,
-            class = "hidden-xs",
-            tags$figure(
-              img(
-                src = show$show_poster,
-                class = "img-responsive img-rounded show-poster",
-                style = "max-height: 250px;"
-              ),
-              tags$figcaption(
-                p(tags$a("fanart.tv", href = "https://fanart.tv/",
-                         style = "color: #2C3E50; text-decoration: none;"),
-                  class = "small", style = "padding-left: 5px;"
-                )
-              )
+      card_body(
+        layout_columns(
+          col_widths = c(3, 9),
+          class = "g-3",
+          tags$figure(
+            class = "show-poster-frame mb-0",
+            img(
+              src = show$show_poster,
+              class = "img-fluid rounded show-poster",
+              alt = glue("Poster for {show$title}")
+            ),
+            tags$figcaption(
+              class = "small text-muted mt-1",
+              "Poster via ",
+              tags$a("fanart.tv", href = "https://fanart.tv/")
             )
           ),
-          column(
-            9, offset = -1,
-            p(class = "lead",
-              if_else(!is.na(show$overview),
-                      stringr::str_trunc(show$overview, 300, "right"),
-                      "No overview available ¯\\_(ツ)_/¯")
-            ),
-            summary_table
+          div(
+            p(class = "lead", safe_overview),
+            layout_column_wrap(
+              width = "180px",
+              fill = FALSE,
+              class = "mt-3",
+              value_box(
+                title = "Rating",
+                value = rating_rounded,
+                showcase = bs_icon("star-fill"),
+                theme = "primary",
+                p(rating_label(rating_rounded), class = "mb-0 small")
+              ),
+              value_box(
+                title = "Votes",
+                value = format(show$votes, big.mark = ","),
+                showcase = bs_icon("people-fill"),
+                theme = "secondary"
+              ),
+              value_box(
+                title = "Episodes",
+                value = show$aired_episodes,
+                showcase = bs_icon("collection-play"),
+                theme = "secondary"
+              ),
+              value_box(
+                title = "Runtime",
+                value = glue("{show$runtime}m"),
+                showcase = bs_icon("clock"),
+                theme = "secondary"
+              )
+            )
           )
         )
       )
@@ -326,7 +334,7 @@ shinyServer(function(input, output, session) {
       #   "First Aired" = "first_aired",
       #   "Last Aired" = "last_aired"
       #   ),
-      rownames = FALSE, style = "bootstrap",
+      rownames = FALSE, style = "auto",
       fillContainer = FALSE,
       options = list(
         dom = "lt",
@@ -368,7 +376,7 @@ shinyServer(function(input, output, session) {
           "Comments" = "comment_count",
           "First Aired" = "first_aired"
         ),
-        rownames = FALSE, style = "bootstrap",
+        rownames = FALSE, style = "auto",
         filter = list(position = "top", clear = TRUE, plain = TRUE),
         fillContainer = FALSE,
         options = list(
@@ -475,14 +483,14 @@ shinyServer(function(input, output, session) {
       ),
       images = list(
         list(
-          source = "img/trakt-icon-black.png",
+          source = "img/trakt-logomark-mono-light.svg",
           xref = "paper",
           yref = "paper",
           x = 0.01,
           y = 0.98,
-          sizex = 0.1,
-          sizey = 0.1,
-          opacity = 0.5
+          sizex = 0.08,
+          sizey = 0.08,
+          opacity = 0.4
         )
       )
     ) %>%
@@ -505,16 +513,70 @@ shinyServer(function(input, output, session) {
       )
 
 
-    # p <- current_show_episodes %>%
-    #   mutate(season = factor(season)) %>%
-    #   ggplot(aes(x = episode, y = rating, fill = season, color = season)) +
-    #   geom_point(size = 3, shape = 21, stroke = .4, color = "black") +
-    #   geom_smooth(method = "lm", se = FALSE, show.legend = FALSE) +
-    #   theme_minimal() +
-    #   labs(x = "Episode #", y = "Rating (1-10)")
-    #
-    # ggplotly(p)
+  })
 
+  # plotly: Seasons (boxplot of episode ratings per season) ----
+  output$plotly_seasons <- renderPlotly({
+    episodes <- show_episodes()
+
+    if (is.null(episodes) || nrow(episodes) == 0) {
+      return(NULL)
+    }
+
+    seasons_n <- length(unique(episodes$season))
+    show_outliers <- nrow(episodes) <= 250  # too crowded for huge shows
+    # For shows with one season, force boxpoints so the box is meaningful
+    # (otherwise a single box with just quartile bars is uninformative).
+    box_points <- if (seasons_n == 1) "all" else if (show_outliers) "outliers" else FALSE
+
+    # Stable categorical x order: numeric season ascending, displayed as "S<n>"
+    season_order <- sort(unique(as.numeric(episodes$season)))
+    episodes <- episodes %>%
+      mutate(season_label = factor(
+        paste0("S", season),
+        levels = paste0("S", season_order),
+        ordered = TRUE
+      ))
+
+    plot_ly(
+      data = episodes,
+      x = ~season_label,
+      y = ~rating,
+      type = "box",
+      name = "Episode ratings",
+      boxpoints = box_points,
+      jitter = 0.3,
+      pointpos = 0,
+      marker = list(size = 4, opacity = 0.6, color = "#ED1C24"),
+      line = list(width = 1.2, color = "#ED1C24"),
+      fillcolor = "rgba(237, 28, 36, 0.18)",
+      hoverinfo = "y",
+      hoverlabel = list(namelength = -1)
+    ) %>%
+      layout(
+        showlegend = FALSE,
+        xaxis = list(
+          title = "Season",
+          tickangle = if (seasons_n > 12) -45 else 0,
+          automargin = TRUE
+        ),
+        yaxis = list(
+          title = "Episode rating",
+          zeroline = FALSE,
+          rangemode = "normal"
+        ),
+        margin = list(l = 50, r = 10, t = 10, b = 40)
+      ) %>%
+      config(
+        displaylogo = FALSE,
+        displayModeBar = TRUE,
+        modeBarButtonsToRemove = list(
+          "toImage", "sendDataToCloud", "editInChartStudio",
+          "select2d", "lasso2d",
+          "zoomIn2d", "zoomOut2d",
+          "resetViews", "resetScale2d", "toggleSpikelines"
+        )
+      )
   })
 
 
@@ -524,7 +586,7 @@ shinyServer(function(input, output, session) {
 
     if (input$get_show > 0) {
       # cat("input$get_show is", input$get_show, "\n")
-      hide(id = "intro-wellpanel", anim = TRUE, animType = "slide", time = 1)
+      hide(id = "intro-card", anim = TRUE, animType = "slide", time = 1)
       shinyjs::show(id = "show_overview", anim = TRUE, animType = "slide", time = 2)
 
       if (!is.null(show_seasons())) {

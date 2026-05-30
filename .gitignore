@@ -4,7 +4,11 @@
 .Rprofile
 playground.R
 .httr-oauth
+TODO.md
 
 attrakttv.env
 .env
 .Renviron
+.local-screenshots/
+README.html
+data/

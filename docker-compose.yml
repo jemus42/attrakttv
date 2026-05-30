@@ -1,32 +1,17 @@
-version: "3.7"
-
+# See vault: personal/projects/attrakttv/specs/2026-05-30-deployment-design.md
+# Port 7842 on the host = same number as local dev for easy recall.
 services:
   attrakttv:
     container_name: attrakttv
-    # image: rocker/shiny
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    user: 'shiny'
-    # Uncomment the lines below to disable application logs STDOUT output
-    # environment:
-    #   - APPLICATION_LOGS_TO_STDOUT=false
+    build: .
+    restart: unless-stopped
     ports:
-      - '3839:3838'
+      # localhost-only; Caddy on horst proxies attrakttv.jemu.name here
+      - "127.0.0.1:7842:3838"
+    env_file: .env
+    # Authoritative path for the SQLite cache; takes precedence over .env so a
+    # stale entry there cannot point the app at a non-existent in-container dir.
+    environment:
+      trakt_db_path: /data
     volumes:
-      - 'shiny_logs:/var/log/shiny-server'
-      - type: volume
-        source: trakt_db
-        target: /home/shiny
-        volume:
-          nocopy: true
-
-volumes:
-  shiny_logs:
-  trakt_db:
-    driver: local
-    driver_opts:
-      type: local
-      device: ${trakt_db_path}
-      o: bind
+      - ./data:/data

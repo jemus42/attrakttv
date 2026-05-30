@@ -18,49 +18,158 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Just a packaged shiny app relying on [{tRakt}](https://github.com/jemus42/tRakt) to get data out of https://trakt.tv and display it nicely.
+A Shiny app for browsing TV show episode ratings, built on
+[{tRakt}](https://github.com/jemus42/tRakt) and the
+[trakt.tv](https://trakt.tv) API.
 
-You can find it currently deployed at [attrakttv.tadaa-data.de](https://attrakttv.tadaa-data.de/).
+The app caches show / season / episode data in a local SQLite database so
+repeat lookups are fast, and visualises per-episode rating trajectories
+with [plotly](https://plotly.com/r/).
 
-Please open an issue if you encounter crashes.  
+> attrakttv is an unofficial fan project and is **not affiliated with,
+> endorsed by, or connected to trakt.tv**.
 
 ## Installation
 
-You can install the latest version of attrakttv from GitHub:
+```r
+# pak (recommended) — pulls in the {tRakt} GitHub remote automatically
+pak::pak("jemus42/attrakttv")
+
+# or remotes
+remotes::install_github("jemus42/attrakttv")
+```
+
+## Usage
 
 ```r
-remotes::install("jemus42/attrakttv")
+attrakttv::attrakttv_app()
 ```
 
-## Usage (Local)
+By default the app listens on **http://127.0.0.1:7842** and opens in your
+browser. Override with the `port` argument or the `attrakttv.port` option.
 
-The app needs both credentials for the **trakt.tv** and the **fanart.tv** API, see `attrakttv.env-sample` for reference. Plug in your keys and either rename the file to `.Renviron` in the current working directory or copy these values to your user/global `.Renviron`.
+Cached data is stored in a SQLite database under the platform-appropriate
+data directory (`rappdirs::user_data_dir("attrakttv", <version>)`):
 
-Then you can call `attrakttv::attrakttv_app()` and try to add a show, which will then hopefully open a browser window displaying a trakt.tv PIN for you to enter at the R console.  
-You can also achieve this by calling any data-retrieving function from the `{tRakt}` package.
+| Platform | Default path |
+|----------|--------------|
+| macOS    | `~/Library/Application Support/attrakttv/<version>/tRakt.db` |
+| Linux    | `~/.local/share/attrakttv/<version>/tRakt.db` |
+| Windows  | `%LOCALAPPDATA%/attrakttv/attrakttv/<version>/tRakt.db` |
 
-The the downloaded show data is stored in a SQLite database located under `~/.local/attrakttv/db/tRakt.db` by default, but you can change that value via the aforementioned configuration file.
+Set the `trakt_db_path` environment variable to override the directory.
 
-## Usage (Docker)
+### API credentials
 
-Since this thing requires API keys for both https://trakt.tv and https://fanart.tv, you'll need to create accounts and get credentials for those first.  
-Copy the file via `cp attrakttv.env-sample attrakttv.env` and plug in your values.
+- **trakt.tv:** not required for normal read-only use — `{tRakt}` ships
+  with a scrambled fallback client_secret since 0.17.0, so basic data
+  retrieval works out of the box. Set `trakt_client_id` /
+  `trakt_client_secret` in your `~/.Renviron` if you want your own quota.
+- **fanart.tv:** required to fetch poster images. Sign up at
+  <https://fanart.tv/get-an-api-key/>, then set `fanarttv_api_key` in your
+  `~/.Renviron`. See `attrakttv.env-sample` for the variable names.
 
-Next you'll need to create a `{httr}` OAuth2 token. The easiest way is to call some function from `{tRakt}` that uses the trakt.tv API (e.g. `tRakt::search_query("Counterpart")`) which will then prompt you for an authentication PIN and open a corresponding browser window. Once set up, the token should be located at `.httr-oauth`.  
+Sourcing the included `attrakttv.env-sample` instead of `~/.Renviron` also
+works — it is recognised by `Sys.getenv()` when copied to `.Renviron` in
+the working directory.
 
-Once both `attrakttv.env` and `.httr-oauth` you can run
+## Features
+
+- Search any TV show by title and see per-show metadata, season summary,
+  and per-episode ratings.
+- Caches results to SQLite so subsequent lookups are instant.
+- Built with [{bslib}](https://rstudio.github.io/bslib/) on Bootstrap 5
+  with light/dark mode toggle.
+- Stable URL per show via query params (e.g. `?show=counterpart`).
+
+## Development
+
+```sh
+make install      # pak::local_install
+make launch       # launch the installed app on port 7842
+make launch-dev   # devtools::load_all + run against /tmp/attrakttv-smoke-db
+make document     # devtools::document
+make check        # devtools::check
+```
+
+`make launch-dev` uses a throwaway SQLite db at `/tmp/attrakttv-smoke-db`
+so it never pollutes your real cache.
+
+## Deployment (horst)
+
+The repo doubles as the on-host service folder under `~/docker/attrakttv/`
+on [horst](https://horst.jemu.name), following the one-folder-per-service
+Docker convention used for every other app on that box. State
+(`./data/tRakt.db`) and secrets (`.env`) live next to `docker-compose.yml`.
+
+### First deploy
+
+```sh
+ssh horst
+git clone https://github.com/jemus42/attrakttv.git ~/docker/attrakttv
+cd ~/docker/attrakttv
+cp attrakttv.env-sample .env
+$EDITOR .env                   # plug in fanarttv_api_key (required)
+mkdir -p data
+docker compose up -d --build
+```
+
+The image pins the in-container `attrakttv` user to UID/GID **1000** so the
+bind-mounted `./data/` is writable when the host operator's UID is also 1000
+(the Debian default and what horst uses). If your host UID differs, build
+with explicit arg overrides:
+
+```sh
+docker compose build \
+  --build-arg APP_UID=$(id -u) --build-arg APP_GID=$(id -g)
+```
+
+Then add this stanza to `~/caddy/Caddyfile` and reload Caddy:
 
 ```
-docker build -t attrakttv .
-docker run --rm -p 3838:3838 --run-as=shiny attrakttv
+attrakttv.jemu.name {
+    import common_log attrakttv
+    reverse_proxy localhost:7842
+}
 ```
 
-And the app will be running at `localhost:3838`.
+```sh
+cd ~/caddy && sudo caddy fmt --overwrite && sudo systemctl reload caddy
+```
 
-Note that currently the SQLite database is ephemeral.  
-You can use `docker-compose` with the included `docker-compose.yml` which will put the database in a volume called `trakt_db`. This is mapped to a local volume you have to define via environment variable set in `.env`, so `cp .env-sample .env` and plug in your desired path (which **must exist**).
+The app is then reachable at <https://attrakttv.jemu.name>.
 
-Regarding the volume thing: [This was helpful](http://blog.code4hire.com/2018/06/define-named-volume-with-host-mount-in-the-docker-compose-file/)
+### Update
+
+```sh
+ssh horst
+cd ~/docker/attrakttv
+git pull
+docker compose up -d --build
+```
+
+The DESCRIPTION-only deps layer stays cached unless dependencies changed,
+so code-only updates rebuild in seconds.
+
+### Backup
+
+```sh
+tar czf attrakttv-data-$(date +%F).tar.gz -C ~/docker/attrakttv data/
+```
+
+State is one directory; tar is the whole story.
+
+### Local Docker test
+
+The same `docker-compose.yml` works on the dev machine:
+
+```sh
+cp attrakttv.env-sample .env && $EDITOR .env
+mkdir -p data
+docker compose up --build
+```
+
+Then open <http://127.0.0.1:7842>.
 
 ## Code of Conduct
 

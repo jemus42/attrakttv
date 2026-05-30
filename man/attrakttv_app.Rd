@@ -5,11 +5,21 @@
 \title{Run attrakttv app}
 \usage{
 attrakttv_app(
+  port = getOption("attrakttv.port", 7842),
+  host = getOption("shiny.host", "127.0.0.1"),
   display.mode = "auto",
   launch.browser = getOption("shiny.launch.browser", interactive())
 )
 }
 \arguments{
+\item{port}{Integer, port to listen on. Defaults to \code{7842} so local
+testing always lands on the same URL. Override with the \code{attrakttv.port}
+option or by passing this argument explicitly.}
+
+\item{host}{Character, host address to bind. Defaults to \code{"127.0.0.1"}
+(local dev). Set to \code{"0.0.0.0"} to listen on all interfaces, e.g. inside
+a container. Override via the \code{shiny.host} option or this argument.}
+
 \item{display.mode}{\code{auto} by default, can also be \code{showcase}.
 See \link[shiny:runApp]{runApp}.}
 
