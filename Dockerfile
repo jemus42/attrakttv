@@ -43,4 +43,4 @@ ENV PORT=3838 \
 
 EXPOSE 3838
 
-CMD ["Rscript", "-e", "attrakttv::attrakttv_app(host = Sys.getenv('HOST','0.0.0.0'), port = as.integer(Sys.getenv('PORT', 3838)), launch.browser = FALSE)"]
+CMD ["Rscript", "-e", "attrakttv::attrakttv_app(host = Sys.getenv('HOST', unset = '0.0.0.0'), port = as.integer(Sys.getenv('PORT', unset = '3838')), launch.browser = FALSE)"]
