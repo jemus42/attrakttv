@@ -1,5 +1,14 @@
 # attrakttv 0.1.0.9000 (development version)
 
+* Deployable as a single-container Docker stack: the rewritten
+  `Dockerfile` (rocker/r-ver + pak, no shiny-server) and
+  `docker-compose.yml` (bind-mount `./data/`, port
+  `127.0.0.1:7842:3838`, `.env` for secrets) follow the horst
+  one-folder-per-service convention. `attrakttv_app()` gained a
+  `host` argument so the container can bind `0.0.0.0` while local
+  dev keeps the `127.0.0.1` default. The README's "Deployment"
+  section documents the full flow including the Caddy stanza for
+  `attrakttv.jemu.name`.
 * New: per-season boxplot in the Seasons view (alongside the existing Table
   tab) shows the distribution of episode ratings per season. Designed to
   scale from 1-season shows up to long-runners (35+ seasons); x-axis labels
