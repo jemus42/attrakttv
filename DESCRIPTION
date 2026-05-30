@@ -21,6 +21,7 @@ Imports:
     dbplyr,
     dplyr,
     glue,
+    htmltools,
     httr,
     lubridate,
     magrittr,
