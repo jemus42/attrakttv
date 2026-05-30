@@ -95,12 +95,71 @@ make check        # devtools::check
 `make launch-dev` uses a throwaway SQLite db at `/tmp/attrakttv-smoke-db`
 so it never pollutes your real cache.
 
-## Deployment
+## Deployment (horst)
 
-The included `Dockerfile` / `docker-compose.yml` predate the current
-revival and are pending an overhaul — treat them as starting points only.
-The legacy `.httr-oauth` PIN dance described in older docs is no longer
-required (see API credentials above).
+The repo doubles as the on-host service folder under `~/docker/attrakttv/`
+on [horst](https://horst.jemu.name), following the one-folder-per-service
+Docker convention used for every other app on that box. State
+(`./data/tRakt.db`) and secrets (`.env`) live next to `docker-compose.yml`.
+
+### First deploy
+
+```sh
+ssh horst
+git clone https://github.com/jemus42/attrakttv.git ~/docker/attrakttv
+cd ~/docker/attrakttv
+cp attrakttv.env-sample .env
+$EDITOR .env                   # plug in fanarttv_api_key (required)
+mkdir -p data
+docker compose up -d --build
+```
+
+Then add this stanza to `~/caddy/Caddyfile` and reload Caddy:
+
+```
+attrakttv.jemu.name {
+    import common_log attrakttv
+    reverse_proxy localhost:7842
+}
+```
+
+```sh
+cd ~/caddy && sudo caddy fmt --overwrite && sudo systemctl reload caddy
+```
+
+The app is then reachable at <https://attrakttv.jemu.name>.
+
+### Update
+
+```sh
+ssh horst
+cd ~/docker/attrakttv
+git pull
+docker compose up -d --build
+```
+
+The DESCRIPTION-only deps layer stays cached unless dependencies changed,
+so code-only updates rebuild in seconds.
+
+### Backup
+
+```sh
+tar czf attrakttv-data-$(date +%F).tar.gz -C ~/docker/attrakttv data/
+```
+
+State is one directory; tar is the whole story.
+
+### Local Docker test
+
+The same `docker-compose.yml` works on the dev machine:
+
+```sh
+cp attrakttv.env-sample .env && $EDITOR .env
+mkdir -p data
+docker compose up --build
+```
+
+Then open <http://127.0.0.1:7842>.
 
 ## Code of Conduct
 
