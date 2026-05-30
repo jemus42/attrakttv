@@ -31,7 +31,13 @@ COPY . /pkg
 RUN R -q -e "pak::local_install('.', ask = FALSE, upgrade = FALSE)"
 
 # Non-root runtime user. /data is the bind-mount target for the SQLite cache.
-RUN useradd --create-home --shell /bin/bash attrakttv \
+# UID/GID 1000 is the Debian default and matches the typical host operator
+# UID on horst. Override via --build-arg if the host UID differs:
+#   docker compose build --build-arg APP_UID=$(id -u) --build-arg APP_GID=$(id -g)
+ARG APP_UID=1000
+ARG APP_GID=1000
+RUN groupadd --gid ${APP_GID} attrakttv \
+    && useradd --uid ${APP_UID} --gid ${APP_GID} --create-home --shell /bin/bash attrakttv \
     && mkdir -p /data \
     && chown attrakttv:attrakttv /data
 USER attrakttv

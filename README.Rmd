@@ -114,6 +114,16 @@ mkdir -p data
 docker compose up -d --build
 ```
 
+The image pins the in-container `attrakttv` user to UID/GID **1000** so the
+bind-mounted `./data/` is writable when the host operator's UID is also 1000
+(the Debian default and what horst uses). If your host UID differs, build
+with explicit arg overrides:
+
+```sh
+docker compose build \
+  --build-arg APP_UID=$(id -u) --build-arg APP_GID=$(id -g)
+```
+
 Then add this stanza to `~/caddy/Caddyfile` and reload Caddy:
 
 ```
