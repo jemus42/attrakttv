@@ -1,0 +1,24 @@
+.git
+.gitignore
+.gitattributes
+
+.Rproj.user
+*.Rproj
+.Rhistory
+.RData
+.Renviron
+
+# Local data and screenshots
+data
+.local-screenshots
+attrakttv.env
+.env
+
+# Build artifacts
+man/figures
+README.html
+docs
+
+# Editor noise
+.vscode
+.idea
