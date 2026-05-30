@@ -9,5 +9,9 @@ services:
       # localhost-only; Caddy on horst proxies attrakttv.jemu.name here
       - "127.0.0.1:7842:3838"
     env_file: .env
+    # Authoritative path for the SQLite cache; takes precedence over .env so a
+    # stale entry there cannot point the app at a non-existent in-container dir.
+    environment:
+      trakt_db_path: /data
     volumes:
       - ./data:/data
