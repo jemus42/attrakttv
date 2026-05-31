@@ -55,7 +55,8 @@
       });
 
       // Add the new ones.
-      (msg.items || []).forEach(function (it) {
+      var items = msg.items || [];
+      items.forEach(function (it) {
         sel.addOption({
           value: it.value,
           label: it.label,
@@ -68,6 +69,15 @@
       // means: don't reopen the dropdown if it isn't already open, and
       // don't touch the input element.
       sel.refreshOptions(false);
+
+      // Highlight the server-preferred first item so Enter picks it.
+      // The server orders results so exact-title matches lead.
+      if (items.length > 0) {
+        var $opt = sel.getOption(items[0].value);
+        if ($opt && $opt.length) {
+          sel.setActiveOption($opt);
+        }
+      }
     });
   }
 

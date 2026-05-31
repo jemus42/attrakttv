@@ -48,6 +48,18 @@ shinyServer(function(input, output, session) {
       keep <- !(as.character(hits$trakt) %in% as.character(cached_ids))
       if (any(keep)) {
         hits <- hits[keep, , drop = FALSE]
+        # trakt's relevance order frequently ties matches with identical
+        # scores; reorder so exact-title matches (case-insensitive) bubble
+        # to the top, then by vote count. That lines up the right answer
+        # for the JS-side `setActiveOption` so Enter picks what the user
+        # almost certainly wants.
+        q_lc <- tolower(query)
+        title_lc <- tolower(hits$title)
+        exact_rank <- (title_lc != q_lc) * 1L  # 0 for exact, 1 otherwise
+        votes <- if (!is.null(hits$votes)) hits$votes else rep(0L, nrow(hits))
+        ord <- order(exact_rank, -votes)
+        hits <- hits[ord, , drop = FALSE]
+
         items <- lapply(seq_len(nrow(hits)), function(i) {
           list(
             value = paste0("trakt:", hits$trakt[i]),
