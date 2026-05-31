@@ -61,10 +61,13 @@ shinyServer(function(input, output, session) {
     }
 
     choices <- c("", cached_ids, trakt_ids)
+    # Do NOT pass `selected = ...` here: this observer fires while the user
+    # is mid-type, and any `selected =` (even the current value) makes
+    # selectize redraw and clear the typed input. Omit it so the typed text
+    # survives the option refresh.
     updateSelectizeInput(
       session, "shows_cached",
-      choices = choices,
-      selected = input$shows_cached %||% ""
+      choices = choices
     )
   })
 
