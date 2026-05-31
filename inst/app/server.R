@@ -393,6 +393,17 @@ shinyServer(function(input, output, session) {
       )
   })
 
+  # y-axis config helper for the plotly outputs.
+  # mode: "auto" (zoomed to data), "tozero" (anchor at 0), "fixed" (1-10).
+  yaxis_config <- function(mode, title = "Rating (1-10)") {
+    base <- list(title = title, zeroline = FALSE)
+    switch(mode,
+      tozero = c(base, list(rangemode = "tozero", zeroline = TRUE)),
+      fixed  = c(list(title = title, zeroline = FALSE), list(range = c(1, 10))),
+      base   # "auto" or anything else
+    )
+  }
+
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
     episodes <- show_episodes()
@@ -403,8 +414,6 @@ shinyServer(function(input, output, session) {
 
     seasons <- show_seasons() %>%
       select(season, season_title = title)
-
-    # cli_alert_info("Doing the plotly")
 
     if (length(unique(seasons$season)) > 1) {
       episodes <- lm(
@@ -430,9 +439,6 @@ shinyServer(function(input, output, session) {
         )
     }
 
-    # glimpse(episodes)
-    # glimpse(seasons)
-
     episodes <- episodes %>%
       left_join(
         seasons,
@@ -447,11 +453,22 @@ shinyServer(function(input, output, session) {
       ) %>%
       make_hoverinfo()
 
+    x_mode <- input$ep_x %||% "abs"
+    y_mode <- input$ep_y %||% "auto"
 
     # plot_ly ----
+    x_aes <- if (x_mode == "date") quote(first_aired) else quote(episode_abs)
+    xaxis_cfg <- if (x_mode == "date") {
+      list(title = "Air date", zeroline = FALSE, type = "date")
+    } else {
+      list(title = "Episode #", zeroline = FALSE)
+    }
+
     plot_ly(
       data = episodes,
-      x = ~episode_abs, y = ~rating, color = ~season_title
+      x = as.formula(paste0("~", deparse(x_aes))),
+      y = ~rating,
+      color = ~season_title
     ) %>%
     add_markers(
       type = "scattergl", mode = "markers",
@@ -469,13 +486,8 @@ shinyServer(function(input, output, session) {
       hoverinfo = "skip"
     ) %>%
     layout(
-      xaxis = list(
-        title = "Episode #",
-        zeroline = FALSE
-      ),
-      yaxis = list(
-        title = "Rating (1-10)"
-      ),
+      xaxis = xaxis_cfg,
+      yaxis = yaxis_config(y_mode),
       showlegend = nrow(seasons) <= 15,
       legend = list(
         orientation = "h",
@@ -560,11 +572,7 @@ shinyServer(function(input, output, session) {
           tickangle = if (seasons_n > 12) -45 else 0,
           automargin = TRUE
         ),
-        yaxis = list(
-          title = "Episode rating",
-          zeroline = FALSE,
-          rangemode = "normal"
-        ),
+        yaxis = yaxis_config(input$se_y %||% "auto", title = "Episode rating"),
         margin = list(l = 50, r = 10, t = 10, b = 40)
       ) %>%
       config(

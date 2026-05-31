@@ -1,5 +1,12 @@
 # attrakttv 0.1.0.9000 (development version)
 
+* Plot controls per card header: the Episodes plot gets an **x-axis**
+  toggle (`Episode #` vs `Air date` — the date axis shows real hiatuses
+  as gaps, useful for shows with long breaks) and a **y-axis** toggle
+  (`Auto` / `0+` / `1–10`); the Seasons boxplot gets the same y toggle.
+  Both navset cards now expose bslib's `full_screen` expand button, and
+  the resting plot heights bump up (episodes 420 → 500 px, seasons
+  320 → 400 px) for less cramped defaults.
 * Deployable as a single-container Docker stack: the rewritten
   `Dockerfile` (rocker/r-ver + pak, no shiny-server) and
   `docker-compose.yml` (bind-mount `./data/`, port

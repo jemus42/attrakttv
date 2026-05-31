@@ -97,6 +97,7 @@ shinyUI(tagList(
             id = "season_tabset",
             title = "Seasons",
             selected = "Table",
+            full_screen = TRUE,
             nav_panel(
               title = "Table",
               icon = bs_icon("table"),
@@ -105,7 +106,20 @@ shinyUI(tagList(
             nav_panel(
               title = "Plot",
               icon = bs_icon("box"),
-              plotlyOutput("plotly_seasons", height = "320px")
+              plotlyOutput("plotly_seasons", height = "400px")
+            ),
+            nav_spacer(),
+            nav_item(
+              div(
+                class = "plot-axis-controls",
+                radioButtons(
+                  inputId = "se_y",
+                  label = "y:",
+                  choices = c("Auto" = "auto", "0+" = "tozero", "1–10" = "fixed"),
+                  selected = "auto",
+                  inline = TRUE
+                )
+              )
             )
           )
         )
@@ -119,15 +133,36 @@ shinyUI(tagList(
             id = "episode_tabset",
             title = "Episodes",
             selected = "Plot",
+            full_screen = TRUE,
             nav_panel(
               title = "Plot",
               icon = bs_icon("graph-up"),
-              plotlyOutput("plotly_episodes", height = "420px")
+              plotlyOutput("plotly_episodes", height = "500px")
             ),
             nav_panel(
               title = "Table",
               icon = bs_icon("table"),
               DT::DTOutput(outputId = "show_episodes_table", width = "100%")
+            ),
+            nav_spacer(),
+            nav_item(
+              div(
+                class = "plot-axis-controls",
+                radioButtons(
+                  inputId = "ep_x",
+                  label = "x:",
+                  choices = c("Episode #" = "abs", "Air date" = "date"),
+                  selected = "abs",
+                  inline = TRUE
+                ),
+                radioButtons(
+                  inputId = "ep_y",
+                  label = "y:",
+                  choices = c("Auto" = "auto", "0+" = "tozero", "1–10" = "fixed"),
+                  selected = "auto",
+                  inline = TRUE
+                )
+              )
             )
           )
         )
