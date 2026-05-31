@@ -24,9 +24,12 @@ shinyServer(function(input, output, session) {
 
   # Live trakt search ----
   # Fired by inst/app/www/js/selectize-search.js on each (debounced) keystroke
-  # in the show dropdown. Merges trakt's relevance-ranked hits into the
-  # selectize options alongside the locally-cached shows so the user can pick
-  # the right "Silo" before submitting.
+  # in the show dropdown. Sends top trakt hits back via a custom message so
+  # the client can splice them into the selectize options *without* going
+  # through shiny's updateSelectizeInput -- that updater re-renders the input
+  # element and clobbers whatever the user has typed when results arrive
+  # mid-keystroke. The cached `cache:<id>` options were set up at session
+  # start in global.R and stay in place.
   observeEvent(input$shows_search_query, label = "Trakt live search", {
     query <- input$shows_search_query
     if (is.null(query) || nchar(query) < 2) return()
@@ -39,36 +42,22 @@ shinyServer(function(input, output, session) {
       }
     )
 
-    cached <- cache_shows_tbl() %>% collect()
-    cached_ids <- if (nrow(cached) > 0) {
-      setNames(
-        paste0("cache:", cached$show_id),
-        as.character(glue("{cached$title} ({cached$year})"))
-      )
-    } else {
-      character()
-    }
-
-    trakt_ids <- character()
+    items <- list()
     if (!is.null(hits) && nrow(hits) > 0) {
-      keep <- !(as.character(hits$trakt) %in% as.character(cached$show_id))
+      cached_ids <- cache_shows_tbl() %>% collect() %>% pull(show_id)
+      keep <- !(as.character(hits$trakt) %in% as.character(cached_ids))
       if (any(keep)) {
-        trakt_ids <- setNames(
-          paste0("trakt:", hits$trakt[keep]),
-          as.character(glue("{hits$title[keep]} ({hits$year[keep]})"))
-        )
+        hits <- hits[keep, , drop = FALSE]
+        items <- lapply(seq_len(nrow(hits)), function(i) {
+          list(
+            value = paste0("trakt:", hits$trakt[i]),
+            label = as.character(glue("{hits$title[i]} ({hits$year[i]})"))
+          )
+        })
       }
     }
 
-    choices <- c("", cached_ids, trakt_ids)
-    # Do NOT pass `selected = ...` here: this observer fires while the user
-    # is mid-type, and any `selected =` (even the current value) makes
-    # selectize redraw and clear the typed input. Omit it so the typed text
-    # survives the option refresh.
-    updateSelectizeInput(
-      session, "shows_cached",
-      choices = choices
-    )
+    session$sendCustomMessage("attrakttv_trakt_results", list(items = items))
   })
 
   # Query string observer ----
