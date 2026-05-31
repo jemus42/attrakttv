@@ -23,6 +23,6 @@
 
 globalVariables(c(
   "trakt", "cache_date", "available_translations", "genres", "updated_at",
-  "first_aired", "show_id", "likes", "tvdb", ".", "lang",
+  "first_aired", "show_id", "likes", "tvdb", ".", "lang", "url",
   "title"
 ))

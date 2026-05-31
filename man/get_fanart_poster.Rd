@@ -12,13 +12,16 @@ get_fanart_poster(tvdbid, api_key = Sys.getenv("fanarttv_api_key"))
 \item{api_key}{Defaults to \code{Sys.getenv("fanarttv_api_key")}.}
 }
 \value{
-A \code{character} with a poster url. If there's no result, return is \code{""} (\code{character(1)})
+A \code{character(1)}: poster URL on success, \code{""} otherwise.
 }
 \description{
-Get a poster from fanart.tv
+Returns a poster URL when fanart.tv has one; on any failure (missing key,
+network error, non-200 response, no matching artwork) returns \code{""} so the
+caller can fall back to a placeholder. Failure is logged via \code{cli} but
+never propagated as an error -- the app keeps working without posters.
 }
 \examples{
 \dontrun{
-get_fanart_poster()
+get_fanart_poster(81189)
 }
 }

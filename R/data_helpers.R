@@ -82,50 +82,76 @@ cleanup_episodes <- function(episodes) {
 
 #' Get a poster from fanart.tv
 #'
+#' Returns a poster URL when fanart.tv has one; on any failure (missing key,
+#' network error, non-200 response, no matching artwork) returns `""` so the
+#' caller can fall back to a placeholder. Failure is logged via `cli` but
+#' never propagated as an error -- the app keeps working without posters.
+#'
 #' @param tvdbid The tvdb id.
 #' @param api_key Defaults to `Sys.getenv("fanarttv_api_key")`.
 #'
-#' @return A `character` with a poster url. If there's no result, return is `""` (`character(1)`)
+#' @return A `character(1)`: poster URL on success, `""` otherwise.
 #' @export
-#' @importFrom httr GET content
-#' @importFrom dplyr bind_rows filter arrange pull
+#' @importFrom httr GET content status_code
+#' @importFrom dplyr bind_rows arrange pull desc
 #' @importFrom purrr pluck
 #' @importFrom utils head
 #' @examples
 #' \dontrun{
-#' get_fanart_poster()
+#' get_fanart_poster(81189)
 #' }
 get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) {
-  if (api_key == "") {
-    stop("Need to set a fanart.tv API key. Set env variable 'fanarttv_api_key'")
+  blank <- character(1)
+
+  if (!nzchar(api_key)) {
+    cli::cli_alert_warning("No fanart.tv API key set; skipping poster lookup")
+    return(blank)
+  }
+  if (length(tvdbid) == 0 || is.na(tvdbid) || !nzchar(as.character(tvdbid))) {
+    return(blank)
   }
 
   query <- paste0("https://webservice.fanart.tv/v3/tv/", tvdbid, "?api_key=", api_key)
-  ret <- httr::content(httr::GET(query))
+  resp <- tryCatch(httr::GET(query), error = function(e) NULL)
+  if (is.null(resp)) {
+    cli::cli_alert_danger("fanart request failed for tvdb {tvdbid}")
+    return(blank)
+  }
+  if (httr::status_code(resp) >= 400) {
+    cli::cli_alert_info(
+      "fanart HTTP {httr::status_code(resp)} for tvdb {tvdbid} (likely no artwork)"
+    )
+    return(blank)
+  }
+
+  ret <- tryCatch(httr::content(resp), error = function(e) NULL)
+  if (!is.list(ret)) {
+    cli::cli_alert_danger("fanart response not a list for tvdb {tvdbid}")
+    return(blank)
+  }
 
   url <- NULL
+  pick_top <- function(key) {
+    items <- pluck(ret, key)
+    if (length(items) == 0) return(NULL)
+    tryCatch(
+      items %>%
+        bind_rows() %>%
+        arrange(desc(likes), lang) %>%
+        head(1) %>%
+        pull(url),
+      error = function(e) NULL
+    )
+  }
+  url <- pick_top("tvposter") %||% pick_top("seasonposter")
 
-  # Try tvposter first
-  if (rlang::has_name(ret, "tvposter")) {
-    url <- pluck(ret, "tvposter") %>%
-      bind_rows() %>%
-      arrange(desc(likes), lang) %>%
-      head(1) %>%
-      pull(url)
-  } else if (rlang::has_name(ret, "seasonposter")) {
-    url <- pluck(ret, "seasonposter") %>%
-      bind_rows() %>%
-      arrange(desc(likes), lang) %>%
-      head(1) %>%
-      pull(url)
+  if (is.character(url) && length(url) == 1 && nzchar(url)) {
+    return(url)
   }
 
-  if (is.character(url) & !(identical(url, character(0)))) {
-    url
-  } else {
-    cli::cli_alert_danger("No fanart: {ret$name} ({tvdbid})")
-    character(1)
-  }
+  show_name <- pluck(ret, "name", .default = "?")
+  cli::cli_alert_info("No fanart artwork: {show_name} (tvdb {tvdbid})")
+  blank
 }
 
 #' Datetime of last week
