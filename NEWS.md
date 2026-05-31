@@ -1,5 +1,13 @@
 # attrakttv 0.1.0.9000 (development version)
 
+* Live trakt search in the show dropdown. As you type, the selectize
+  control fetches the top trakt matches (debounced 250 ms) and merges
+  them alongside the locally-cached shows, prefixed `trakt:<id>` until
+  picked. Disambiguates between e.g. "Silo (2023)" and "Sí lo digo
+  (2022)" without needing to guess the right year. Picking a `trakt:`
+  result caches the show and re-renders the dropdown with the regular
+  `cache:` entry. Freeform "type-then-enter" still works as a fallback
+  if JS is off or the user submits before the search returns.
 * Plot controls per card header: the Episodes plot gets an **x-axis**
   toggle (`Episode #` vs `Air date` — the date axis shows real hiatuses
   as gaps, useful for shows with long breaks) and a **y-axis** toggle

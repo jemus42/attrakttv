@@ -22,6 +22,52 @@ shinyServer(function(input, output, session) {
     if (input$shows_cached != "") click("get_show")
   })
 
+  # Live trakt search ----
+  # Fired by inst/app/www/js/selectize-search.js on each (debounced) keystroke
+  # in the show dropdown. Merges trakt's relevance-ranked hits into the
+  # selectize options alongside the locally-cached shows so the user can pick
+  # the right "Silo" before submitting.
+  observeEvent(input$shows_search_query, label = "Trakt live search", {
+    query <- input$shows_search_query
+    if (is.null(query) || nchar(query) < 2) return()
+
+    hits <- tryCatch(
+      tRakt::search_query(query, type = "show", n_results = 8, extended = "min"),
+      error = function(e) {
+        cli_alert_danger("trakt search failed: {conditionMessage(e)}")
+        NULL
+      }
+    )
+
+    cached <- cache_shows_tbl() %>% collect()
+    cached_ids <- if (nrow(cached) > 0) {
+      setNames(
+        paste0("cache:", cached$show_id),
+        as.character(glue("{cached$title} ({cached$year})"))
+      )
+    } else {
+      character()
+    }
+
+    trakt_ids <- character()
+    if (!is.null(hits) && nrow(hits) > 0) {
+      keep <- !(as.character(hits$trakt) %in% as.character(cached$show_id))
+      if (any(keep)) {
+        trakt_ids <- setNames(
+          paste0("trakt:", hits$trakt[keep]),
+          as.character(glue("{hits$title[keep]} ({hits$year[keep]})"))
+        )
+      }
+    }
+
+    choices <- c("", cached_ids, trakt_ids)
+    updateSelectizeInput(
+      session, "shows_cached",
+      choices = choices,
+      selected = input$shows_cached %||% ""
+    )
+  })
+
   # Query string observer ----
   observe(label = "Query string updater", {
 
@@ -55,20 +101,36 @@ shinyServer(function(input, output, session) {
     # cli_alert_info("query_slug {query_slug}")
 
     if (stringr::str_detect(input$shows_cached, "^cache:")) {
-      # cli_alert_info("cached show detected {input$shows_cached}")
-
       input_show <- input$shows_cached %>%
         stringr::str_extract(., "\\d+")
 
+    } else if (stringr::str_detect(input$shows_cached, "^trakt:")) {
+      # User picked a result surfaced by the live trakt search. Cache it,
+      # then refresh the dropdown so the entry becomes a regular cache:<id>.
+      trakt_id <- input$shows_cached %>% stringr::str_extract("\\d+")
+      input_show <- cache_add_show(show_id = trakt_id, cache_db_con = cache_db_con)
+      if (is.null(input_show)) return(NULL)
+
+      shows <- cache_shows_tbl() %>% collect()
+      choices <- c("", setNames(
+        paste0("cache:", shows$show_id),
+        as.character(glue("{shows$title} ({shows$year})"))
+      ))
+      updateSelectizeInput(
+        session, "shows_cached",
+        choices = choices,
+        selected = paste0("cache:", input_show)
+      )
+
     } else if (input$shows_cached != "") {
+      # Freeform fallback: user typed a query and submitted without picking
+      # from the trakt suggestions (e.g. JS disabled or first match was good).
       input_show <- input$shows_cached %>%
         stringr::str_remove(., "^cache:") %>%
         cache_add_show(cache_db_con = cache_db_con)
 
       if (is.null(input_show)) return(NULL)
 
-      # Refresh the dropdown so the freeform query gets replaced with the
-      # resolved "Title (Year)" label keyed by cache id.
       shows <- cache_shows_tbl() %>% collect()
       choices <- c("", setNames(
         paste0("cache:", shows$show_id),

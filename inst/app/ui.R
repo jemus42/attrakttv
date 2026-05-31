@@ -38,6 +38,7 @@ app_head <- tags$head(
   tags$link(rel = "shortcut icon", href = "favicon.png"),
   tags$script(src = "js/matomo.js", type = "application/javascript"),
   tags$script(src = "js/proxy-click.js", type = "application/javascript"),
+  tags$script(src = "js/selectize-search.js", type = "application/javascript"),
   tags$link(href = "css/tRakt.css", rel = "stylesheet"),
   tags$noscript(p(img(
     src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
