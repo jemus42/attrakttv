@@ -34,12 +34,21 @@ app_theme <- bs_theme(
   preset = "shiny"
 )
 
+# Cache-bust local assets with the file mtime so browsers pick up updates
+# without a manual Shift+Reload. Shiny doesn't emit a Cache-Control header,
+# so plain `?v=` is enough to defeat the validation cache. The URL path is
+# relative to inst/app/www/ (which is what Shiny serves from the root).
+asset_url <- function(url_path) {
+  abs <- system.file(file.path("app", "www", url_path), package = "attrakttv")
+  v <- if (nzchar(abs)) as.integer(file.info(abs)$mtime) else 0L
+  sprintf("%s?v=%d", url_path, v)
+}
+
 app_head <- tags$head(
   tags$link(rel = "shortcut icon", href = "favicon.png"),
-  tags$script(src = "js/matomo.js", type = "application/javascript"),
-  tags$script(src = "js/proxy-click.js", type = "application/javascript"),
-  tags$script(src = "js/selectize-search.js", type = "application/javascript"),
-  tags$link(href = "css/tRakt.css", rel = "stylesheet"),
+  tags$script(src = asset_url("js/proxy-click.js"), type = "application/javascript"),
+  tags$script(src = asset_url("js/selectize-search.js"), type = "application/javascript"),
+  tags$link(href = asset_url("css/tRakt.css"), rel = "stylesheet"),
   tags$noscript(p(img(
     src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
     style = "border:0;",

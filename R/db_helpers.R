@@ -173,13 +173,26 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
 #' @importFrom tRakt search_query
 #' @keywords internal
 cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
+  # trakt's relevance score frequently ties many candidates, so the first
+  # row is essentially arbitrary among matches with the same score. Fetch
+  # a wider slate and prefer an exact-title (case-insensitive) match,
+  # breaking ties by vote count. Falls back to the first row if no title
+  # matches the query exactly.
   ret <- search_query(
     show_query,
-    type = "show", n_results = 1, extended = "full"
+    type = "show", n_results = 8, extended = "full"
   )
 
-  if (identical(ret, tibble())) {
+  if (identical(ret, tibble()) || nrow(ret) == 0) {
     return(NULL)
+  }
+
+  exact <- which(tolower(ret$title) == tolower(show_query))
+  if (length(exact) > 0) {
+    chosen <- exact[which.max(ret$votes[exact])]
+    ret <- ret[chosen, , drop = FALSE]
+  } else {
+    ret <- ret[1, , drop = FALSE]
   }
 
   ret <- cleanup_show_summary(ret)
