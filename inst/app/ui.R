@@ -49,11 +49,11 @@ app_head <- tags$head(
   tags$script(src = asset_url("js/proxy-click.js"), type = "application/javascript"),
   tags$script(src = asset_url("js/selectize-search.js"), type = "application/javascript"),
   tags$link(href = asset_url("css/tRakt.css"), rel = "stylesheet"),
-  tags$noscript(p(img(
-    src = "//analytics.tadaa-data.de/matomo.php?idsite=22&amp;rec=1",
-    style = "border:0;",
-    alt = ""
-  )))
+  tags$script(
+    defer = NA,
+    src = "https://umami.jemu.name/script.js",
+    `data-website-id` = "db5be8b2-5fc1-4859-a791-e11c736b8e07"
+  )
 )
 
 shinyUI(tagList(
