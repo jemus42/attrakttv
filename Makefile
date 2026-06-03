@@ -1,5 +1,4 @@
-.PHONY: launch launch-dev refresh-tick \
-	docker-build docker-up docker-down docker-logs \
+.PHONY: launch launch-dev refresh-tick redeploy \
 	format doc document install deps check test clean
 
 PORT ?= 7842
@@ -22,19 +21,12 @@ launch-dev:
 refresh-tick:
 	Rscript -e 'attrakttv::cache_refresh_tick()'
 
-# ---- Docker compose ----
+# ---- Deploy (run on horst) ----
 
-docker-build:
-	docker compose build
-
-docker-up:
-	docker compose up -d
-
-docker-down:
-	docker compose down
-
-docker-logs:
-	docker compose logs -f
+# Pull image layers as needed, rebuild app + sidecar, and bring them up.
+# This is the one compose invocation that doesn't have a shell alias.
+redeploy:
+	docker compose up -d --build
 
 # ---- Standard R-package targets (mirrors $SYNCBIN/R/Makefile) ----
 
