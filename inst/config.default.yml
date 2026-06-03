@@ -1,0 +1,31 @@
+# attrakttv runtime config — defaults baked into the package.
+#
+# Override by mounting a partial YAML at /etc/attrakttv/config.yml or by
+# setting ATTRAKTTV_CONFIG=/path/to/config.yml. modifyList merges recursively,
+# so partial overrides leave the rest of the defaults intact.
+
+refresh:
+  # Sidecar wakes up this often and walks the shows table.
+  tick_interval_hours: 12
+
+  # --- tier classification ---
+  # A show is "hot" if status = returning AND last episode aired this recently.
+  hot_last_ep_days: 30
+  # Otherwise "warm" if returning AND last ep within this window.
+  warm_last_ep_days: 180
+  # Or "warm" if ended/canceled AND last ep within this window.
+  warm_ended_days: 90
+  # Anything else with ended/canceled status = "cold".
+  # Shows with planned/in-production status (or no aired episodes) = "future".
+
+  # --- background refresh cadences ---
+  hot_refresh_days: 3
+  warm_refresh_days: 7
+  future_refresh_days: 14
+  # Set to null to never refresh ended shows from the sidecar.
+  cold_refresh_days: 30
+
+  # --- on-search refresh (synchronous, only fires for hot tier) ---
+  # When a user picks a cached hot show whose cache_date is older than this
+  # many days, refetch synchronously before serving.
+  on_search_max_age_days: 1

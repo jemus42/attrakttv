@@ -11,7 +11,29 @@ services:
     env_file: .env
     # Authoritative path for the SQLite cache; takes precedence over .env so a
     # stale entry there cannot point the app at a non-existent in-container dir.
+    # ATTRAKTTV_CONFIG: drop a config.yml into ./data to override the baked
+    # defaults at inst/config.default.yml. Loader falls back to defaults if
+    # the file is missing — empty data dir is fine on first boot.
     environment:
       trakt_db_path: /data
+      ATTRAKTTV_CONFIG: /data/config.yml
     volumes:
       - ./data:/data
+
+  # Background refresh sidecar. Same image, same DB volume, no port. Walks
+  # the shows table every refresh.tick_interval_hours and refetches stale
+  # ones per the tiered cadence (see inst/config.default.yml). App and
+  # sidecar share the DB via SQLite WAL mode (set in cache_db()).
+  attrakttv-refresher:
+    container_name: attrakttv-refresher
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      trakt_db_path: /data
+      ATTRAKTTV_CONFIG: /data/config.yml
+    volumes:
+      - ./data:/data
+    command: ["Rscript", "-e", "attrakttv::cache_refresh_loop()"]
+    depends_on:
+      - attrakttv

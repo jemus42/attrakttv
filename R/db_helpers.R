@@ -24,10 +24,14 @@ cache_db_path <- function(name = "tRakt.db", verbose = TRUE) {
     version = utils::packageVersion("attrakttv")
   )
 
-  if (!file.exists(default_path)) dir.create(default_path, recursive = TRUE)
+  if (!file.exists(default_path)) {
+    dir.create(default_path, recursive = TRUE)
+  }
 
   path <- file.path(Sys.getenv("trakt_db_path", unset = default_path), name)
-  if (verbose) cli_alert_info("Database path: {path} ({file_size(path)})")
+  if (verbose) {
+    cli_alert_info("Database path: {path} ({file_size(path)})")
+  }
   invisible(path)
 }
 
@@ -46,7 +50,7 @@ cache_db_path <- function(name = "tRakt.db", verbose = TRUE) {
 #' is_already_cached("shows", 1390, cache_db_con)
 #' }
 cache_db <- function(pool = TRUE, path = cache_db_path()) {
-  if (pool) {
+  con <- if (pool) {
     dbPool(
       drv = SQLite(),
       dbname = path,
@@ -55,6 +59,12 @@ cache_db <- function(pool = TRUE, path = cache_db_path()) {
   } else {
     dbConnect(SQLite(), path)
   }
+  # WAL mode is sticky on the file, but assert per-open so a fresh DB and
+  # any concurrent writer (e.g. the refresh sidecar alongside the Shiny app)
+  # safely share the journal. Default mode = "delete" only tolerates one
+  # writer process.
+  DBI::dbExecute(con, "PRAGMA journal_mode = WAL;")
+  con
 }
 
 #' Initialise database file
@@ -68,7 +78,10 @@ cache_db <- function(pool = TRUE, path = cache_db_path()) {
 #' @importFrom RSQLite dbDisconnect
 #' @return Nothing
 #' @export
-db_init <- function(path = cache_db_path(), cache_db_con = cache_db(pool = FALSE)) {
+db_init <- function(
+  path = cache_db_path(),
+  cache_db_con = cache_db(pool = FALSE)
+) {
   dbDisconnect(cache_db_con)
   invisible()
 }
@@ -130,7 +143,12 @@ is_already_cached <- function(table_name, show_id, cache_db_con) {
 #' @export
 #' @importFrom tRakt shows_summary
 #' @importFrom cli cli_alert_info
-cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, cache_db_con) {
+cache_add_show <- function(
+  show_query = NULL,
+  show_id = NULL,
+  replace = FALSE,
+  cache_db_con
+) {
   if (!is.null(show_query)) {
     ret_show_id <- cache_add_show_query(
       show_query = show_query,
@@ -142,10 +160,16 @@ cache_add_show <- function(show_query = NULL, show_id = NULL, replace = FALSE, c
       return(NULL)
     }
   } else if (!is.null(show_id)) {
-    if (getOption("caching_debug", default = FALSE)) cli_alert_info("Want to add show '{show_id}'")
+    if (getOption("caching_debug", default = FALSE)) {
+      cli_alert_info("Want to add show '{show_id}'")
+    }
 
     show_id <- as.character(show_id)
-    already_cached <- is_already_cached("shows", show_id, cache_db_con = cache_db_con)
+    already_cached <- is_already_cached(
+      "shows",
+      show_id,
+      cache_db_con = cache_db_con
+    )
 
     if ((already_cached & replace) | (!already_cached)) {
       ret <- shows_summary(show_id, extended = "full")
@@ -180,7 +204,9 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
   # matches the query exactly.
   ret <- search_query(
     show_query,
-    type = "show", n_results = 8, extended = "full"
+    type = "show",
+    n_results = 8,
+    extended = "full"
   )
 
   if (identical(ret, tibble()) || nrow(ret) == 0) {
@@ -197,7 +223,11 @@ cache_add_show_query <- function(show_query, replace = FALSE, cache_db_con) {
 
   ret <- cleanup_show_summary(ret)
 
-  already_cached <- is_already_cached("shows", ret$show_id, cache_db_con = cache_db_con)
+  already_cached <- is_already_cached(
+    "shows",
+    ret$show_id,
+    cache_db_con = cache_db_con
+  )
 
   if ((already_cached & replace) | (!already_cached)) {
     cache_add_data(
@@ -261,9 +291,7 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
 #' @export
 #' @importFrom dplyr tbl collect filter pull tibble
 cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
-
   if (!is_already_cached("posters", show_id, cache_db_con)) {
-
     tvdbid <- tbl(cache_db_con, "shows") %>%
       collect() %>%
       filter(show_id == show_id) %>%
@@ -298,7 +326,12 @@ cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
 #' \dontrun{
 #' TRUE
 #' }
-cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) {
+cache_add_data <- function(
+  table_name,
+  new_data,
+  replace = FALSE,
+  cache_db_con
+) {
   # cached | replace | what do
   # TRUE   | TRUE    | -> drop, write
   # TRUE   | FALSE   | -> do nothing
@@ -337,13 +370,18 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
   # Delete if already cached and replace = TRUE
   if (already_cached & replace) {
     if (getOption("caching_debug", default = FALSE)) {
-      cli_alert_danger("Deleting and replacing show '{current_id}' at '{table_name}'")
+      cli_alert_danger(
+        "Deleting and replacing show '{current_id}' at '{table_name}'"
+      )
     }
 
-    query <- glue_sql("
+    query <- glue_sql(
+      "
       DELETE FROM {table_name}
       WHERE ({`matching_id`} = {current_id});
-    ", .con = cache_db_con)
+    ",
+      .con = cache_db_con
+    )
 
     res <- dbSendStatement(cache_db_con, query)
     # dbHasCompleted(res)
@@ -355,14 +393,18 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
 
   if (!already_cached) {
     if (getOption("caching_debug", default = FALSE)) {
-      cli_alert_success("'{current_id}' not in cache, writing to '{table_name}'")
+      cli_alert_success(
+        "'{current_id}' not in cache, writing to '{table_name}'"
+      )
     }
 
     dbWriteTable(cache_db_con, table_name, new_data, append = TRUE)
   }
 
   if (already_cached & !replace & getOption("caching_debug", default = FALSE)) {
-    cli_alert_info("Not replacing '{current_id}' data already in '{table_name}'")
+    cli_alert_info(
+      "Not replacing '{current_id}' data already in '{table_name}'"
+    )
   }
 }
 
@@ -377,10 +419,13 @@ cache_add_data <- function(table_name, new_data, replace = FALSE, cache_db_con) 
 #' @importFrom glue glue_sql
 #' @export
 cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
-  query <- glue_sql("
+  query <- glue_sql(
+    "
       DELETE FROM {table_name}
       WHERE ({`where_id`} IN ({is_id*}));
-    ", .con = cache_db_con)
+    ",
+    .con = cache_db_con
+  )
 
   res <- dbSendStatement(cache_db_con, query)
   # dbHasCompleted(res)
@@ -402,7 +447,6 @@ cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
 #' cache_drop_old_rows("seasons", 4, cache_db_con)
 #' }
 cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
-
   cutoff_time <- days_ago(threshold_days)
 
   to_delete <- tbl(cache_db_con, table_name) %>%
@@ -436,7 +480,6 @@ cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
 #' cache_update_episodes()
 #' }
 cache_update_episodes <- function(criterion = "aired") {
-
   # pool doesn't do dbSendStatement yet :(
   # Need RSQLite for this.
   cache_db_con <- cache_db(pool = FALSE)
@@ -456,10 +499,13 @@ cache_update_episodes <- function(criterion = "aired") {
     ) %>%
     collect()
 
-  pwalk(shows_to_replace, ~{
-    cli_h2("Replacing episodes for {.y} ({.x})")
-    cache_add_episodes(.x, replace = TRUE, cache_db_con)
-  })
+  pwalk(
+    shows_to_replace,
+    ~ {
+      cli_h2("Replacing episodes for {.y} ({.x})")
+      cache_add_episodes(.x, replace = TRUE, cache_db_con)
+    }
+  )
 }
 
 #' Update data for trending shows on trakt.tv
@@ -475,7 +521,6 @@ cache_update_episodes <- function(criterion = "aired") {
 #' @examples
 #' cache_update_trending(20)
 cache_update_trending <- function(n = 100) {
-
   # pool doesn't do dbSendStatement yet :(
   # Need RSQLite for this.
   cache_db_con <- cache_db(pool = FALSE)
@@ -484,9 +529,11 @@ cache_update_trending <- function(n = 100) {
   shows <- shows_trending(limit = n, extended = "min") %>%
     select(title, trakt)
 
-  pwalk(shows, ~{
-    cli_h2("Replacing episodes for {.y} ({.x})")
-    cache_add_episodes(.y, replace = TRUE, cache_db_con)
-  })
-
+  pwalk(
+    shows,
+    ~ {
+      cli_h2("Replacing episodes for {.y} ({.x})")
+      cache_add_episodes(.y, replace = TRUE, cache_db_con)
+    }
+  )
 }

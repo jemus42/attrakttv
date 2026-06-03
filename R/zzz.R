@@ -20,9 +20,21 @@
 #
 # }
 
-
 globalVariables(c(
-  "trakt", "cache_date", "available_translations", "genres", "updated_at",
-  "first_aired", "show_id", "likes", "tvdb", ".", "lang", "url",
-  "title"
+  "trakt",
+  "cache_date",
+  "available_translations",
+  "genres",
+  "updated_at",
+  "first_aired",
+  "show_id",
+  "likes",
+  "tvdb",
+  ".",
+  "lang",
+  "url",
+  "title",
+  "status",
+  "last_aired",
+  "last_aired_days"
 ))

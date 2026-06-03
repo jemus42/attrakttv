@@ -2,7 +2,6 @@
 # library(reactlog)
 
 shinyServer(function(input, output, session) {
-
   # Caching observer ----
   # observe(label = "Cache initializer", {
   #   cached_shows <- cache_shows_tbl %>%
@@ -32,10 +31,17 @@ shinyServer(function(input, output, session) {
   # start in global.R and stay in place.
   observeEvent(input$shows_search_query, label = "Trakt live search", {
     query <- input$shows_search_query
-    if (is.null(query) || nchar(query) < 2) return()
+    if (is.null(query) || nchar(query) < 2) {
+      return()
+    }
 
     hits <- tryCatch(
-      tRakt::search_query(query, type = "show", n_results = 8, extended = "min"),
+      tRakt::search_query(
+        query,
+        type = "show",
+        n_results = 8,
+        extended = "min"
+      ),
       error = function(e) {
         cli_alert_danger("trakt search failed: {conditionMessage(e)}")
         NULL
@@ -55,7 +61,7 @@ shinyServer(function(input, output, session) {
         # almost certainly wants.
         q_lc <- tolower(query)
         title_lc <- tolower(hits$title)
-        exact_rank <- (title_lc != q_lc) * 1L  # 0 for exact, 1 otherwise
+        exact_rank <- (title_lc != q_lc) * 1L # 0 for exact, 1 otherwise
         votes <- if (!is.null(hits$votes)) hits$votes else rep(0L, nrow(hits))
         ord <- order(exact_rank, -votes)
         hits <- hits[ord, , drop = FALSE]
@@ -74,7 +80,6 @@ shinyServer(function(input, output, session) {
 
   # Query string observer ----
   observe(label = "Query string updater", {
-
     query <- getQueryString(session)
     query_slug <- query[['show']]
 
@@ -84,7 +89,9 @@ shinyServer(function(input, output, session) {
 
       if (!identical(show_id, character(1)) & !is.null(show_id)) {
         updateSelectizeInput(
-          session, "shows_cached", selected = glue("cache:{show_id}")
+          session,
+          "shows_cached",
+          selected = glue("cache:{show_id}")
         )
         # click("get_show")
       }
@@ -92,177 +99,228 @@ shinyServer(function(input, output, session) {
 
     query_debug <- query[['debug']]
 
-     if (identical(query_debug, "true")) {
-       shinyjs::show("debug_info")
-     }
-
+    if (identical(query_debug, "true")) {
+      shinyjs::show("debug_info")
+    }
   })
 
   # show_info() reactiveEvent ----
-  show_info <- eventReactive(input$shows_cached, label = "show_info()", {
+  show_info <- eventReactive(
+    input$shows_cached,
+    label = "show_info()",
+    {
+      query_slug <- getQueryString(session)[['show']] %||% ""
+      # cli_alert_info("query_slug {query_slug}")
 
-    query_slug <- getQueryString(session)[['show']] %||% ""
-    # cli_alert_info("query_slug {query_slug}")
+      if (stringr::str_detect(input$shows_cached, "^cache:")) {
+        input_show <- input$shows_cached %>%
+          stringr::str_extract(., "\\d+")
+      } else if (stringr::str_detect(input$shows_cached, "^trakt:")) {
+        # User picked a result surfaced by the live trakt search. Cache it,
+        # then refresh the dropdown so the entry becomes a regular cache:<id>.
+        trakt_id <- input$shows_cached %>% stringr::str_extract("\\d+")
+        input_show <- cache_add_show(
+          show_id = trakt_id,
+          cache_db_con = cache_db_con
+        )
+        if (is.null(input_show)) {
+          return(NULL)
+        }
 
-    if (stringr::str_detect(input$shows_cached, "^cache:")) {
-      input_show <- input$shows_cached %>%
-        stringr::str_extract(., "\\d+")
+        shows <- cache_shows_tbl() %>% collect()
+        choices <- c(
+          "",
+          setNames(
+            paste0("cache:", shows$show_id),
+            as.character(glue("{shows$title} ({shows$year})"))
+          )
+        )
+        updateSelectizeInput(
+          session,
+          "shows_cached",
+          choices = choices,
+          selected = paste0("cache:", input_show)
+        )
+      } else if (input$shows_cached != "") {
+        # Freeform fallback: user typed a query and submitted without picking
+        # from the trakt suggestions (e.g. JS disabled or first match was good).
+        input_show <- input$shows_cached %>%
+          stringr::str_remove(., "^cache:") %>%
+          cache_add_show(cache_db_con = cache_db_con)
 
-    } else if (stringr::str_detect(input$shows_cached, "^trakt:")) {
-      # User picked a result surfaced by the live trakt search. Cache it,
-      # then refresh the dropdown so the entry becomes a regular cache:<id>.
-      trakt_id <- input$shows_cached %>% stringr::str_extract("\\d+")
-      input_show <- cache_add_show(show_id = trakt_id, cache_db_con = cache_db_con)
-      if (is.null(input_show)) return(NULL)
+        if (is.null(input_show)) {
+          return(NULL)
+        }
 
-      shows <- cache_shows_tbl() %>% collect()
-      choices <- c("", setNames(
-        paste0("cache:", shows$show_id),
-        as.character(glue("{shows$title} ({shows$year})"))
-      ))
-      updateSelectizeInput(
-        session, "shows_cached",
-        choices = choices,
-        selected = paste0("cache:", input_show)
+        shows <- cache_shows_tbl() %>% collect()
+        choices <- c(
+          "",
+          setNames(
+            paste0("cache:", shows$show_id),
+            as.character(glue("{shows$title} ({shows$year})"))
+          )
+        )
+        updateSelectizeInput(
+          session,
+          "shows_cached",
+          choices = choices,
+          selected = paste0("cache:", input_show)
+        )
+      } else if (!is.null(query_slug)) {
+        input_show <- convert_ids(
+          slug = query_slug,
+          cache_db_con = cache_db_con
+        )
+      } else {
+        return(NULL)
+      }
+
+      # cli_alert_warning("input_show {input_show}")
+
+      # On-search refresh: hot-tier shows whose cache is older than
+      # `on_search_max_age_days` get refetched synchronously before we serve
+      # them. No-op for warm/cold/future tiers (those rely on the sidecar).
+      tryCatch(
+        cache_refresh_if_stale(input_show, trigger = "on_search"),
+        error = function(e) {
+          cli_alert_info("on-search refresh skipped: {conditionMessage(e)}")
+        }
       )
 
-    } else if (input$shows_cached != "") {
-      # Freeform fallback: user typed a query and submitted without picking
-      # from the trakt suggestions (e.g. JS disabled or first match was good).
-      input_show <- input$shows_cached %>%
-        stringr::str_remove(., "^cache:") %>%
-        cache_add_show(cache_db_con = cache_db_con)
-
-      if (is.null(input_show)) return(NULL)
-
-      shows <- cache_shows_tbl() %>% collect()
-      choices <- c("", setNames(
-        paste0("cache:", shows$show_id),
-        as.character(glue("{shows$title} ({shows$year})"))
-      ))
-      updateSelectizeInput(
-        session, "shows_cached",
-        choices = choices,
-        selected = paste0("cache:", input_show)
+      show_tmp <- cache_shows_tbl() %>% filter(show_id == input_show)
+      cli_alert_info(
+        "{lubridate::now('UTC')} - Current show: {pull(show_tmp, slug)}"
       )
-    } else if (!is.null(query_slug)) {
-      input_show <- convert_ids(slug = query_slug, cache_db_con = cache_db_con)
-    } else {
-      return(NULL)
-    }
 
-    # cli_alert_warning("input_show {input_show}")
-    show_tmp <- cache_shows_tbl() %>% filter(show_id == input_show)
-    cli_alert_info("{lubridate::now('UTC')} - Current show: {pull(show_tmp, slug)}")
+      if (!identical(query_slug, pull(show_tmp, slug))) {
+        updateQueryString(
+          glue("?show={pull(show_tmp, slug)}"),
+          mode = "push",
+          session = session
+        )
+      }
 
-    if (!identical(query_slug, pull(show_tmp, slug))) {
-      updateQueryString(glue("?show={pull(show_tmp, slug)}"), mode = "push", session = session)
-    }
+      if (!is_already_cached("posters", input_show, cache_db_con)) {
+        tibble(
+          show_id = input_show,
+          show_poster = get_fanart_poster(pull(show_tmp, tvdb))
+        ) %>%
+          cache_add_data("posters", ., cache_db_con = cache_db_con)
+      }
 
-    if (!is_already_cached("posters", input_show, cache_db_con)) {
-      tibble(
-        show_id = input_show,
-        show_poster = get_fanart_poster(pull(show_tmp, tvdb))
-      ) %>%
-        cache_add_data("posters", ., cache_db_con = cache_db_con)
-    }
-
-    show_tmp %>%
-      left_join(
-        cache_posters_tbl() %>%
-          select(show_id, show_poster),
-        by = "show_id"
-      ) %>%
-      collect() %>%
-      mutate(
-        show_poster = if_else(show_poster == "", "img/poster-blank.jpg", show_poster)
-      )
-  }, ignoreInit = TRUE)
+      show_tmp %>%
+        left_join(
+          cache_posters_tbl() %>%
+            select(show_id, show_poster),
+          by = "show_id"
+        ) %>%
+        collect() %>%
+        mutate(
+          show_poster = if_else(
+            show_poster == "",
+            "img/poster-blank.jpg",
+            show_poster
+          )
+        )
+    },
+    ignoreInit = TRUE
+  )
 
   # show_seasons() ----
-  show_seasons <- eventReactive(show_info(), label = "show_seasons()", {
+  show_seasons <- eventReactive(
+    show_info(),
+    label = "show_seasons()",
+    {
+      # cli_alert_info("Making show_seasons()")
 
-    # cli_alert_info("Making show_seasons()")
+      current_show <- show_info()
+      current_show_id <- current_show$show_id
 
-    current_show <- show_info()
-    current_show_id <- current_show$show_id
+      if (current_show$aired_episodes == 0) {
+        return(NULL)
+      }
 
-    if (current_show$aired_episodes == 0) {
-      return(NULL)
-    }
+      if (!is_already_cached("seasons", current_show_id, cache_db_con)) {
+        cli_alert_success("Adding {current_show_id} episodes to cache")
+        cache_add_episodes(
+          show_id = current_show_id,
+          replace = FALSE,
+          cache_db_con
+        )
+      }
 
-    if (!is_already_cached("seasons", current_show_id, cache_db_con)) {
-      cli_alert_success("Adding {current_show_id} episodes to cache")
-      cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
-    }
+      current_show_episodes <- cache_episodes_tbl() %>%
+        filter(show_id == current_show_id) %>%
+        collect() %>%
+        group_by(season) %>%
+        summarize(
+          mean_rating = weighted.mean(rating, w = votes, na.rm = TRUE),
+          sum_votes = sum(votes),
+          last_aired = max(first_aired, na.rm = TRUE)
+        )
 
-    current_show_episodes <- cache_episodes_tbl() %>%
-      filter(show_id == current_show_id) %>%
-      collect() %>%
-      group_by(season) %>%
-      summarize(
-        mean_rating = weighted.mean(rating, w = votes, na.rm = TRUE),
-        sum_votes = sum(votes),
-        last_aired = max(first_aired, na.rm = TRUE)
-      )
+      current_show_seasons <- cache_seasons_tbl() %>%
+        filter(show_id == current_show_id) %>%
+        collect() %>%
+        left_join(current_show_episodes, by = "season") %>%
+        transmute(
+          season = as.character(season),
+          title = title,
+          aired_total = if_else(
+            aired_episodes < episode_count,
+            glue("{aired_episodes} (of {episode_count} total)"),
+            as.character(aired_episodes)
+          ),
+          rating = round(rating, 1),
+          mean_rating = round(mean_rating, 1),
+          votes = votes,
+          sum_votes = sum_votes,
+          first_aired = unix_date(first_aired),
+          last_aired = unix_date(last_aired)
+        )
 
-    current_show_seasons <- cache_seasons_tbl() %>%
-      filter(show_id == current_show_id) %>%
-      collect() %>%
-      left_join(current_show_episodes, by = "season") %>%
-      transmute(
-        season = as.character(season),
-        title = title,
-        aired_total = if_else(
-          aired_episodes < episode_count,
-          glue("{aired_episodes} (of {episode_count} total)"),
-          as.character(aired_episodes)
-        ),
-        rating = round(rating, 1),
-        mean_rating = round(mean_rating, 1),
-        votes = votes,
-        sum_votes = sum_votes,
-        first_aired = unix_date(first_aired),
-        last_aired = unix_date(last_aired)
-      )
-
-    current_show_seasons
-  }, ignoreNULL = TRUE)
-
+      current_show_seasons
+    },
+    ignoreNULL = TRUE
+  )
 
   # show_episodes() ----
-  show_episodes <- eventReactive(show_info(), label = "show_episodes()", {
+  show_episodes <- eventReactive(
+    show_info(),
+    label = "show_episodes()",
+    {
+      show_seasons()
 
-    show_seasons()
+      # cli_alert_info("Making show_episodes()")
 
-    # cli_alert_info("Making show_episodes()")
+      current_show <- show_info()
+      current_show_id <- current_show$show_id
 
-    current_show <- show_info()
-    current_show_id <- current_show$show_id
+      if (current_show$aired_episodes == 0) {
+        return(NULL)
+      }
 
-    if (current_show$aired_episodes == 0) {
-      return(NULL)
-    }
+      # if (!is_already_cached("episodes", current_show_id, cache_db_con)) {
+      #   cli_alert_success("Adding {current_show_id} episodes to cache")
+      #   cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
+      # }
 
-    # if (!is_already_cached("episodes", current_show_id, cache_db_con)) {
-    #   cli_alert_success("Adding {current_show_id} episodes to cache")
-    #   cache_add_episodes(show_id = current_show_id, replace = FALSE, cache_db_con)
-    # }
+      current_show_episodes <- cache_episodes_tbl() %>%
+        filter(show_id == current_show_id) %>%
+        collect() %>%
+        mutate(
+          season_episode = sprintf("s%02de%02d", season, episode),
+          first_aired = unix_date(first_aired),
+          season = as.character(season)
+        ) %>%
+        filter(
+          first_aired <= lubridate::today()
+        )
 
-    current_show_episodes <- cache_episodes_tbl() %>%
-      filter(show_id == current_show_id) %>%
-      collect() %>%
-      mutate(
-        season_episode = sprintf("s%02de%02d", season, episode),
-        first_aired = unix_date(first_aired),
-        season = as.character(season)
-      ) %>%
-      filter(
-        first_aired <= lubridate::today()
-      )
-
-    current_show_episodes
-  }, ignoreNULL = TRUE)
+      current_show_episodes
+    },
+    ignoreNULL = TRUE
+  )
 
   # show_overview renderUI  ----
   output$show_overview <- renderUI({
@@ -375,14 +433,22 @@ shinyServer(function(input, output, session) {
         tr(
           th(rowspan = 2, colspan = 1, "Name"),
           th(rowspan = 2, colspan = 1, "Episodes"),
-          th(colspan = 2, "Ratings", class = "second-header", id = "secondhead"),
+          th(
+            colspan = 2,
+            "Ratings",
+            class = "second-header",
+            id = "secondhead"
+          ),
           th(colspan = 2, "Votes", class = "second-header", id = "secondhead"),
           th(colspan = 2, "Aired", class = "second-header", id = "secondhead")
         ),
         tr(
-          th("Season"), th("Episode (mean)"),
-          th("Season"), th("Episodes"),
-          th("Started"), th("Ended")
+          th("Season"),
+          th("Episode (mean)"),
+          th("Season"),
+          th("Episodes"),
+          th("Started"),
+          th("Ended")
         )
       )
     ))
@@ -400,7 +466,8 @@ shinyServer(function(input, output, session) {
       #   "First Aired" = "first_aired",
       #   "Last Aired" = "last_aired"
       #   ),
-      rownames = FALSE, style = "auto",
+      rownames = FALSE,
+      style = "auto",
       fillContainer = FALSE,
       options = list(
         dom = "lt",
@@ -442,7 +509,8 @@ shinyServer(function(input, output, session) {
           "Comments" = "comment_count",
           "First Aired" = "first_aired"
         ),
-        rownames = FALSE, style = "auto",
+        rownames = FALSE,
+        style = "auto",
         filter = list(position = "top", clear = TRUE, plain = TRUE),
         fillContainer = FALSE,
         options = list(
@@ -463,10 +531,11 @@ shinyServer(function(input, output, session) {
   # mode: "auto" (zoomed to data), "tozero" (anchor at 0), "fixed" (1-10).
   yaxis_config <- function(mode, title = "Rating (1-10)") {
     base <- list(title = title, zeroline = FALSE)
-    switch(mode,
+    switch(
+      mode,
       tozero = c(base, list(rangemode = "tozero", zeroline = TRUE)),
-      fixed  = c(list(title = title, zeroline = FALSE), list(range = c(1, 10))),
-      base   # "auto" or anything else
+      fixed = c(list(title = title, zeroline = FALSE), list(range = c(1, 10))),
+      base # "auto" or anything else
     )
   }
 
@@ -484,7 +553,8 @@ shinyServer(function(input, output, session) {
     if (length(unique(seasons$season)) > 1) {
       episodes <- lm(
         rating ~ episode * season - episode - 1,
-        weights = votes, data = episodes
+        weights = votes,
+        data = episodes
       ) %>%
         broom::augment() %>%
         select(.fitted_season = .fitted, episode, season) %>%
@@ -495,7 +565,8 @@ shinyServer(function(input, output, session) {
     } else {
       episodes <- lm(
         rating ~ episode,
-        weights = votes, data = episodes
+        weights = votes,
+        data = episodes
       ) %>%
         broom::augment() %>%
         select(.fitted_season = .fitted, episode) %>%
@@ -514,7 +585,9 @@ shinyServer(function(input, output, session) {
       mutate(
         episode_abs = seq_along(first_aired),
         season_title = factor(
-          season_title, levels = rev(unique(season_title)), ordered = TRUE
+          season_title,
+          levels = rev(unique(season_title)),
+          ordered = TRUE
         )
       ) %>%
       make_hoverinfo()
@@ -536,45 +609,54 @@ shinyServer(function(input, output, session) {
       y = ~rating,
       color = ~season_title
     ) %>%
-    add_markers(
-      type = "scattergl", mode = "markers",
-      stroke = I("black"),
-      alpha = .75, size = 5, name = ~season_title,
-      legendgroup = ~season,
-      text = ~hovertext,
-      hoverinfo = "text"
-    ) %>%
-    add_lines(
-      y = ~.fitted_season, type = "lines", size = I(3),
-      line = list(dash = "dash"),
-      legendgroup = ~season,
-      showlegend = FALSE,
-      hoverinfo = "skip"
-    ) %>%
-    layout(
-      xaxis = xaxis_cfg,
-      yaxis = yaxis_config(y_mode),
-      showlegend = nrow(seasons) <= 15,
-      legend = list(
-        orientation = "h",
-        x = 0, y = 100
-      ),
-      images = list(
-        list(
-          source = "img/trakt-logomark-mono-light.svg",
-          xref = "paper",
-          yref = "paper",
-          x = 0.01,
-          y = 0.98,
-          sizex = 0.08,
-          sizey = 0.08,
-          opacity = 0.4
+      add_markers(
+        type = "scattergl",
+        mode = "markers",
+        stroke = I("black"),
+        alpha = .75,
+        size = 5,
+        name = ~season_title,
+        legendgroup = ~season,
+        text = ~hovertext,
+        hoverinfo = "text"
+      ) %>%
+      add_lines(
+        y = ~.fitted_season,
+        type = "lines",
+        size = I(3),
+        line = list(dash = "dash"),
+        legendgroup = ~season,
+        showlegend = FALSE,
+        hoverinfo = "skip"
+      ) %>%
+      layout(
+        xaxis = xaxis_cfg,
+        yaxis = yaxis_config(y_mode),
+        showlegend = nrow(seasons) <= 15,
+        legend = list(
+          orientation = "h",
+          x = 0,
+          y = 100
+        ),
+        images = list(
+          list(
+            source = "img/trakt-logomark-mono-light.svg",
+            xref = "paper",
+            yref = "paper",
+            x = 0.01,
+            y = 0.98,
+            sizex = 0.08,
+            sizey = 0.08,
+            opacity = 0.4
+          )
         )
-      )
-    ) %>%
+      ) %>%
       config(
-        staticPlot = FALSE, displayModeBar = TRUE,
-        editable = FALSE, sendData = FALSE, displaylogo = FALSE,
+        staticPlot = FALSE,
+        displayModeBar = TRUE,
+        editable = FALSE,
+        sendData = FALSE,
+        displaylogo = FALSE,
         modeBarButtonsToRemove = list(
           "toImage",
           "sendDataToCloud",
@@ -584,13 +666,13 @@ shinyServer(function(input, output, session) {
           "select2d",
           "lasso2d",
           # "zoom2d",
-          "zoomIn2d", "zoomOut2d",
-          "resetViews", "resetScale2d",
+          "zoomIn2d",
+          "zoomOut2d",
+          "resetViews",
+          "resetScale2d",
           "toggleSpikelines"
         )
       )
-
-
   })
 
   # plotly: Seasons (boxplot of episode ratings per season) ----
@@ -602,19 +684,27 @@ shinyServer(function(input, output, session) {
     }
 
     seasons_n <- length(unique(episodes$season))
-    show_outliers <- nrow(episodes) <= 250  # too crowded for huge shows
+    show_outliers <- nrow(episodes) <= 250 # too crowded for huge shows
     # For shows with one season, force boxpoints so the box is meaningful
     # (otherwise a single box with just quartile bars is uninformative).
-    box_points <- if (seasons_n == 1) "all" else if (show_outliers) "outliers" else FALSE
+    box_points <- if (seasons_n == 1) {
+      "all"
+    } else if (show_outliers) {
+      "outliers"
+    } else {
+      FALSE
+    }
 
     # Stable categorical x order: numeric season ascending, displayed as "S<n>"
     season_order <- sort(unique(as.numeric(episodes$season)))
     episodes <- episodes %>%
-      mutate(season_label = factor(
-        paste0("S", season),
-        levels = paste0("S", season_order),
-        ordered = TRUE
-      ))
+      mutate(
+        season_label = factor(
+          paste0("S", season),
+          levels = paste0("S", season_order),
+          ordered = TRUE
+        )
+      )
 
     plot_ly(
       data = episodes,
@@ -645,14 +735,19 @@ shinyServer(function(input, output, session) {
         displaylogo = FALSE,
         displayModeBar = TRUE,
         modeBarButtonsToRemove = list(
-          "toImage", "sendDataToCloud", "editInChartStudio",
-          "select2d", "lasso2d",
-          "zoomIn2d", "zoomOut2d",
-          "resetViews", "resetScale2d", "toggleSpikelines"
+          "toImage",
+          "sendDataToCloud",
+          "editInChartStudio",
+          "select2d",
+          "lasso2d",
+          "zoomIn2d",
+          "zoomOut2d",
+          "resetViews",
+          "resetScale2d",
+          "toggleSpikelines"
         )
       )
   })
-
 
   # Startup toggles ----
   observeEvent(input$get_show, once = TRUE, label = "Hide Intro", {
@@ -661,20 +756,38 @@ shinyServer(function(input, output, session) {
     if (input$get_show > 0) {
       # cat("input$get_show is", input$get_show, "\n")
       hide(id = "intro-card", anim = TRUE, animType = "slide", time = 1)
-      shinyjs::show(id = "show_overview", anim = TRUE, animType = "slide", time = 2)
+      shinyjs::show(
+        id = "show_overview",
+        anim = TRUE,
+        animType = "slide",
+        time = 2
+      )
 
       if (!is.null(show_seasons())) {
-        shinyjs::show(id = "season_container", anim = TRUE, animType = "slide", time = 2)
-        shinyjs::show(id = "episodes_container", anim = TRUE, animType = "slide", time = 2)
+        shinyjs::show(
+          id = "season_container",
+          anim = TRUE,
+          animType = "slide",
+          time = 2
+        )
+        shinyjs::show(
+          id = "episodes_container",
+          anim = TRUE,
+          animType = "slide",
+          time = 2
+        )
       }
     }
   })
 
   # Request log ----
   observeEvent(show_info(), label = "Log requests", {
-
-    if (isolate(input$get_show) == 0) return(NULL)
-    if (isolate(input$shows_cached) == "") return(NULL)
+    if (isolate(input$get_show) == 0) {
+      return(NULL)
+    }
+    if (isolate(input$shows_cached) == "") {
+      return(NULL)
+    }
 
     res <- tibble(
       time = as.numeric(lubridate::now(tzone = "UTC")),

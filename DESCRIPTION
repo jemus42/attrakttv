@@ -38,7 +38,8 @@ Imports:
     plotly,
     DT,
     rappdirs,
-    markdown
+    markdown,
+    yaml
 Suggests: 
     broom
 Remotes: 
