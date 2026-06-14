@@ -28,10 +28,12 @@ cache_db_con <- cache_db()
 empty_tbl <- function(...) {
   cols <- list(...)
   tibble::as_tibble(lapply(cols, function(type) {
-    switch(type,
+    switch(
+      type,
       character = character(0),
       integer = integer(0),
-      numeric = numeric(0))
+      numeric = numeric(0)
+    )
   }))
 }
 
@@ -41,26 +43,63 @@ cache_tbl_factory <- function(con, name, empty) {
   }
 }
 
-cache_shows_tbl <- cache_tbl_factory(cache_db_con, "shows", empty_tbl(
-  show_id = "character", slug = "character", title = "character",
-  year = "integer", rating = "numeric", votes = "integer",
-  country = "character", language = "character", network = "character",
-  status = "character", overview = "character",
-  aired_episodes = "integer", runtime = "integer", tvdb = "character"
-))
-cache_posters_tbl <- cache_tbl_factory(cache_db_con, "posters", empty_tbl(
-  show_id = "character", show_poster = "character"
-))
-cache_seasons_tbl <- cache_tbl_factory(cache_db_con, "seasons", empty_tbl(
-  show_id = "character", season = "integer", title = "character",
-  rating = "numeric", votes = "integer", first_aired = "numeric",
-  aired_episodes = "integer", episode_count = "integer"
-))
-cache_episodes_tbl <- cache_tbl_factory(cache_db_con, "episodes", empty_tbl(
-  show_id = "character", season = "integer", episode = "integer",
-  title = "character", rating = "numeric", votes = "integer",
-  first_aired = "numeric", comment_count = "integer", runtime = "integer"
-))
+cache_shows_tbl <- cache_tbl_factory(
+  cache_db_con,
+  "shows",
+  empty_tbl(
+    show_id = "character",
+    slug = "character",
+    title = "character",
+    year = "integer",
+    rating = "numeric",
+    votes = "integer",
+    country = "character",
+    language = "character",
+    network = "character",
+    status = "character",
+    overview = "character",
+    aired_episodes = "integer",
+    runtime = "integer",
+    tvdb = "character"
+  )
+)
+cache_posters_tbl <- cache_tbl_factory(
+  cache_db_con,
+  "posters",
+  empty_tbl(
+    show_id = "character",
+    show_poster = "character"
+  )
+)
+cache_seasons_tbl <- cache_tbl_factory(
+  cache_db_con,
+  "seasons",
+  empty_tbl(
+    show_id = "character",
+    season = "integer",
+    title = "character",
+    rating = "numeric",
+    votes = "integer",
+    first_aired = "numeric",
+    aired_episodes = "integer",
+    episode_count = "integer"
+  )
+)
+cache_episodes_tbl <- cache_tbl_factory(
+  cache_db_con,
+  "episodes",
+  empty_tbl(
+    show_id = "character",
+    season = "integer",
+    episode = "integer",
+    title = "character",
+    rating = "numeric",
+    votes = "integer",
+    first_aired = "numeric",
+    comment_count = "integer",
+    runtime = "integer"
+  )
+)
 
 #### Setting some values ----
 app_title <- glue("attrakttv v{utils::packageVersion('attrakttv')}")
@@ -73,14 +112,25 @@ cached_shows <- cache_shows_tbl() %>% collect()
 if (nrow(cached_shows) == 0) {
   show_ids <- ""
 } else {
-  # Jumble around so you're not always shown the same few shows
-  cached_shows <- bind_rows(
-    cached_shows %>% filter(rating >= 7 & votes >= 1000) %>% sample_frac(1),
-    cached_shows %>% filter(!(rating >= 7 & votes >= 1000))
-  )
+  # Order: groups of same-titled shows sorted by their best entry's
+  # popularity (so a hit reboot lifts the original alongside it); within a
+  # group, by year so reboots/spinoffs stay adjacent (e.g. Scrubs 2001
+  # directly above Scrubs 2026). Popularity = rating * log10(votes + 10)
+  # so a 9.0 with 50k votes outweighs a 9.5 with 100.
+  cached_shows <- cached_shows %>%
+    mutate(
+      .pop = ifelse(is.na(rating) | is.na(votes), 0, rating * log10(votes + 10))
+    ) %>%
+    group_by(title) %>%
+    mutate(.group_pop = max(.pop)) %>%
+    ungroup() %>%
+    arrange(desc(.group_pop), title, year) %>%
+    select(-.pop, -.group_pop)
 
   show_ids <- paste0("cache:", cached_shows$show_id)
-  names(show_ids) <- as.character(glue("{cached_shows$title} ({cached_shows$year})"))
+  names(show_ids) <- as.character(glue(
+    "{cached_shows$title} ({cached_shows$year})"
+  ))
 
   # Append empty string for placeholder text
   show_ids <- c("", show_ids)
