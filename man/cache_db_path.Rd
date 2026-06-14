@@ -16,14 +16,14 @@ Invisibly: \code{character(1)}: Full path to the db file.
 }
 \description{
 The directory is set to \code{Sys.getenv("trakt_db_path")}, with a default location
-derived from \code{rappdirs::user_data_dir()} if the variable is not set.
+derived from \code{\link[tools:R_user_dir]{tools::R_user_dir()}} if the variable is not set.
 }
 \details{
-The default directories are:
+Defaults follow the R-standard per-user data directory:
 \itemize{
-\item macOS: \code{"/Users/<user>/Library/Application Support/attrakttv/<version>/tRakt.db"}
-\item Linux \code{"/home/<user>/.local/share/attrakttv/<version>/tRakt.db"} (\verb{$"XDG_DATA_HOME"})
-\item Windows \verb{""C:/Users/<user>/Local/attrakttv/attrakttv/<version>/tRakt.db""}
+\item macOS: \code{"~/Library/Application Support/org.R-project.R/R/attrakttv/tRakt.db"}
+\item Linux \code{"~/.local/share/R/attrakttv/tRakt.db"} (\verb{$XDG_DATA_HOME})
+\item Windows \code{"\%LOCALAPPDATA\%/R/data/R/attrakttv/tRakt.db"}
 }
 }
 \examples{

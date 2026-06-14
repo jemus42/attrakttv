@@ -1,13 +1,13 @@
 #' Get the path to the db file
 #'
 #' The directory is set to `Sys.getenv("trakt_db_path")`, with a default location
-#' derived from `rappdirs::user_data_dir()` if the variable is not set.
+#' derived from [tools::R_user_dir()] if the variable is not set.
 #'
-#' The default directories are:
+#' Defaults follow the R-standard per-user data directory:
 #'
-#' - macOS: `"/Users/<user>/Library/Application Support/attrakttv/<version>/tRakt.db"`
-#' - Linux `"/home/<user>/.local/share/attrakttv/<version>/tRakt.db"` (`$"XDG_DATA_HOME"`)
-#' - Windows `""C:/Users/<user>/Local/attrakttv/attrakttv/<version>/tRakt.db""`
+#' - macOS: `"~/Library/Application Support/org.R-project.R/R/attrakttv/tRakt.db"`
+#' - Linux `"~/.local/share/R/attrakttv/tRakt.db"` (`$XDG_DATA_HOME`)
+#' - Windows `"%LOCALAPPDATA%/R/data/R/attrakttv/tRakt.db"`
 #'
 #' @param name `["tRakt.db"]`: Name of db file.
 #' @param verbose `[TRUE]`: Log the db path to the console.
@@ -15,14 +15,10 @@
 #' @export
 #' @importFrom fs file_size
 #' @importFrom cli cli_alert_info
-#' @importFrom rappdirs user_data_dir
 #' @examples
 #' cache_db_path()
 cache_db_path <- function(name = "tRakt.db", verbose = TRUE) {
-  default_path <- rappdirs::user_data_dir(
-    appname = "attrakttv",
-    version = utils::packageVersion("attrakttv")
-  )
+  default_path <- tools::R_user_dir("attrakttv", which = "data")
 
   if (!file.exists(default_path)) {
     dir.create(default_path, recursive = TRUE)
