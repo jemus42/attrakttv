@@ -15,13 +15,19 @@ intro_card <- card(
       ),
       div(
         class = "intro-text",
-        p(class = "lead mb-2",
+        p(
+          class = "lead mb-2",
           "attrakttv lets you quickly inspect TV show ratings on a per-episode basis,",
-          " powered by ", a(href = "https://trakt.tv", "trakt.tv"), " data."
+          " powered by ",
+          a(href = "https://trakt.tv", "trakt.tv"),
+          " data."
         ),
-        p(class = "text-muted small mb-0",
+        p(
+          class = "text-muted small mb-0",
           "Pick a cached show from the dropdown, or type any title to look it up.",
-          " Source is on ", a(href = "https://github.com/jemus42/attrakttv", "GitHub"), "."
+          " Source is on ",
+          a(href = "https://github.com/jemus42/attrakttv", "GitHub"),
+          "."
         )
       )
     )
@@ -46,8 +52,14 @@ asset_url <- function(url_path) {
 
 app_head <- tags$head(
   tags$link(rel = "shortcut icon", href = "favicon.png"),
-  tags$script(src = asset_url("js/proxy-click.js"), type = "application/javascript"),
-  tags$script(src = asset_url("js/selectize-search.js"), type = "application/javascript"),
+  tags$script(
+    src = asset_url("js/proxy-click.js"),
+    type = "application/javascript"
+  ),
+  tags$script(
+    src = asset_url("js/selectize-search.js"),
+    type = "application/javascript"
+  ),
   tags$link(href = asset_url("css/tRakt.css"), rel = "stylesheet"),
   tags$script(
     defer = NA,
@@ -78,8 +90,10 @@ shinyUI(tagList(
         tagAppendAttributes(
           selectizeInput(
             width = "100%",
-            inputId = "shows_cached", label = NULL,
-            choices = show_ids, selected = "",
+            inputId = "shows_cached",
+            label = NULL,
+            choices = show_ids,
+            selected = "",
             options = list(
               create = TRUE,
               placeholder = "Pick a show – if it's not listed yet I'll look it up",
@@ -125,7 +139,11 @@ shinyUI(tagList(
                 radioButtons(
                   inputId = "se_y",
                   label = "y:",
-                  choices = c("Auto" = "auto", "0+" = "tozero", "1–10" = "fixed"),
+                  choices = c(
+                    "Auto" = "auto",
+                    "0+" = "tozero",
+                    "1–10" = "fixed"
+                  ),
                   selected = "auto",
                   inline = TRUE
                 )
@@ -168,7 +186,11 @@ shinyUI(tagList(
                 radioButtons(
                   inputId = "ep_y",
                   label = "y:",
-                  choices = c("Auto" = "auto", "0+" = "tozero", "1–10" = "fixed"),
+                  choices = c(
+                    "Auto" = "auto",
+                    "0+" = "tozero",
+                    "1–10" = "fixed"
+                  ),
                   selected = "auto",
                   inline = TRUE
                 )

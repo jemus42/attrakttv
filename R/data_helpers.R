@@ -16,17 +16,40 @@
 #' @importFrom purrr map_chr
 #' @examples
 #' \dontrun{
-#' tRakt::search_query("Futurama", type = "show") %>%
+#' tRakt::search_query("Futurama", type = "show") |>
 #'   cleanup_show_summary()
 #' }
 cleanup_show_summary <- function(show) {
   keep <- c(
-    "trakt", "slug", "title", "year", "overview", "tagline", "status",
-    "country", "language", "network", "runtime", "rating", "votes",
-    "comment_count", "aired_episodes", "first_aired", "updated_at",
-    "genres", "certification", "airs_day", "airs_time", "airs_timezone",
-    "original_title", "homepage", "imdb", "tmdb", "tvdb",
-    "plex_guid", "plex_slug"
+    "trakt",
+    "slug",
+    "title",
+    "year",
+    "overview",
+    "tagline",
+    "status",
+    "country",
+    "language",
+    "network",
+    "runtime",
+    "rating",
+    "votes",
+    "comment_count",
+    "aired_episodes",
+    "first_aired",
+    "updated_at",
+    "genres",
+    "certification",
+    "airs_day",
+    "airs_time",
+    "airs_timezone",
+    "original_title",
+    "homepage",
+    "imdb",
+    "tmdb",
+    "tvdb",
+    "plex_guid",
+    "plex_slug"
   )
 
   show <- show[, intersect(keep, names(show)), drop = FALSE]
@@ -51,10 +74,22 @@ cleanup_show_summary <- function(show) {
 #' @export
 cleanup_seasons <- function(seasons) {
   keep <- c(
-    "show_id", "season", "title", "rating", "votes",
-    "first_aired", "aired_episodes", "episode_count",
-    "overview", "network", "updated_at", "total_runtime",
-    "original_title", "tmdb", "tvdb", "plex_guid"
+    "show_id",
+    "season",
+    "title",
+    "rating",
+    "votes",
+    "first_aired",
+    "aired_episodes",
+    "episode_count",
+    "overview",
+    "network",
+    "updated_at",
+    "total_runtime",
+    "original_title",
+    "tmdb",
+    "tvdb",
+    "plex_guid"
   )
   seasons[, intersect(keep, names(seasons)), drop = FALSE]
 }
@@ -72,10 +107,25 @@ cleanup_seasons <- function(seasons) {
 #' @export
 cleanup_episodes <- function(episodes) {
   keep <- c(
-    "show_id", "season", "episode", "title", "rating", "votes",
-    "first_aired", "comment_count", "runtime", "overview",
-    "released", "updated_at", "original_title", "episode_abs",
-    "episode_type", "imdb", "tmdb", "tvdb", "plex_guid"
+    "show_id",
+    "season",
+    "episode",
+    "title",
+    "rating",
+    "votes",
+    "first_aired",
+    "comment_count",
+    "runtime",
+    "overview",
+    "released",
+    "updated_at",
+    "original_title",
+    "episode_abs",
+    "episode_type",
+    "imdb",
+    "tmdb",
+    "tvdb",
+    "plex_guid"
   )
   episodes[, intersect(keep, names(episodes)), drop = FALSE]
 }
@@ -100,7 +150,10 @@ cleanup_episodes <- function(episodes) {
 #' \dontrun{
 #' get_fanart_poster(81189)
 #' }
-get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) {
+get_fanart_poster <- function(
+  tvdbid,
+  api_key = Sys.getenv("fanarttv_api_key")
+) {
   blank <- character(1)
 
   if (!nzchar(api_key)) {
@@ -111,7 +164,12 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
     return(blank)
   }
 
-  query <- paste0("https://webservice.fanart.tv/v3/tv/", tvdbid, "?api_key=", api_key)
+  query <- paste0(
+    "https://webservice.fanart.tv/v3/tv/",
+    tvdbid,
+    "?api_key=",
+    api_key
+  )
   resp <- tryCatch(httr::GET(query), error = function(e) NULL)
   if (is.null(resp)) {
     cli::cli_alert_danger("fanart request failed for tvdb {tvdbid}")
@@ -133,12 +191,14 @@ get_fanart_poster <- function(tvdbid, api_key = Sys.getenv("fanarttv_api_key")) 
   url <- NULL
   pick_top <- function(key) {
     items <- pluck(ret, key)
-    if (length(items) == 0) return(NULL)
+    if (length(items) == 0) {
+      return(NULL)
+    }
     tryCatch(
-      items %>%
-        bind_rows() %>%
-        arrange(desc(likes), lang) %>%
-        head(1) %>%
+      items |>
+        bind_rows() |>
+        arrange(desc(likes), lang) |>
+        head(1) |>
         pull(url),
       error = function(e) NULL
     )
@@ -187,17 +247,17 @@ rating_label <- function(x) {
   x <- round(x)
 
   dplyr::case_when(
-    x == 1  ~ "Weak Sauce :(",
-    x == 2  ~ "Terrible",
-    x == 3  ~ "Bad",
-    x == 4  ~ "Poor",
-    x == 5  ~ "Meh",
-    x == 6  ~ "Fair",
-    x == 7  ~ "Good",
-    x == 8  ~ "Great",
-    x == 9  ~ "Superb",
+    x == 1 ~ "Weak Sauce :(",
+    x == 2 ~ "Terrible",
+    x == 3 ~ "Bad",
+    x == 4 ~ "Poor",
+    x == 5 ~ "Meh",
+    x == 6 ~ "Fair",
+    x == 7 ~ "Good",
+    x == 8 ~ "Great",
+    x == 9 ~ "Superb",
     x == 10 ~ "Totally Ninja!",
-    TRUE    ~ "??"
+    TRUE ~ "??"
   )
 }
 
@@ -210,13 +270,11 @@ rating_label <- function(x) {
 #' @examples
 #' country_label(c("us", "de", "lwaflaf"))
 country_label <- function(x) {
-
   country_codes <- tRakt::trakt_countries$name
   names(country_codes) <- tRakt::trakt_countries$code
   res <- country_codes[x]
   res[is.na(res)] <- "N/A"
   res
-
 }
 
 #' Label language codes
@@ -228,13 +286,11 @@ country_label <- function(x) {
 #' @examples
 #' language_label(c("us", "de", "lwaflaf"))
 language_label <- function(x) {
-
   language_codes <- tRakt::trakt_languages$name
   names(language_codes) <- tRakt::trakt_languages$code
   res <- language_codes[x]
   res[is.na(res)] <- "N/A"
   res
-
 }
 
 
@@ -251,28 +307,23 @@ language_label <- function(x) {
 #' convert_ids(slug = "futurama")
 #' convert_ids(show_id = "614")
 convert_ids <- function(show_id = NULL, slug = NULL, cache_db_con) {
-
   if (missing(cache_db_con)) {
     cache_db_con <- cache_db()
     on.exit(dbDisconnect(cache_db_con))
   }
 
-  shows <- tbl(cache_db_con, "shows") %>% select(show_id, slug) %>% collect()
+  shows <- tbl(cache_db_con, "shows") |> select(show_id, slug) |> collect()
 
   if (!is.null(slug)) {
-
     ids <- shows$show_id
     names(ids) <- shows$slug
     ids[slug]
-
   } else if (!is.null(show_id)) {
-
     show_id <- stringr::str_remove(show_id, "^cache:")
 
     slugs <- shows$slug
     names(slugs) <- shows$show_id
     slugs[show_id]
-
   } else {
     stop("Gotta pick one")
   }
@@ -291,7 +342,7 @@ convert_ids <- function(show_id = NULL, slug = NULL, cache_db_con) {
 #' x <- c(927079200, 958960800, 989805600, 1060567200, 1315533600, 1378346400)
 #' unix_date(x)
 unix_date <- function(x) {
-  as.POSIXct(x, tz = "UTC", origin = "1970-01-01") %>%
+  as.POSIXct(x, tz = "UTC", origin = "1970-01-01") |>
     as.Date()
 }
 

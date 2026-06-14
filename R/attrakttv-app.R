@@ -21,10 +21,14 @@ attrakttv_app <- function(
   port = getOption("attrakttv.port", 7842),
   host = getOption("shiny.host", "127.0.0.1"),
   display.mode = "auto",
-  launch.browser = getOption("shiny.launch.browser", interactive())) {
+  launch.browser = getOption("shiny.launch.browser", interactive())
+) {
   appDir <- system.file("app", package = "attrakttv")
   if (appDir == "") {
-    stop("Could not find shiny directory. Try re-installing `attrakttv`.", call. = FALSE)
+    stop(
+      "Could not find shiny directory. Try re-installing `attrakttv`.",
+      call. = FALSE
+    )
   }
 
   shiny::runApp(

@@ -23,7 +23,7 @@ produce the same shape.
 }
 \examples{
 \dontrun{
-tRakt::search_query("Futurama", type = "show") \%>\%
+tRakt::search_query("Futurama", type = "show") |>
   cleanup_show_summary()
 }
 }

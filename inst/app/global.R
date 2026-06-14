@@ -107,7 +107,7 @@ app_title <- glue("attrakttv v{utils::packageVersion('attrakttv')}")
 ## Define some HTML characters
 bullet <- HTML("&#8226;")
 
-cached_shows <- cache_shows_tbl() %>% collect()
+cached_shows <- cache_shows_tbl() |> collect()
 
 if (nrow(cached_shows) == 0) {
   show_ids <- ""
@@ -117,14 +117,14 @@ if (nrow(cached_shows) == 0) {
   # group, by year so reboots/spinoffs stay adjacent (e.g. Scrubs 2001
   # directly above Scrubs 2026). Popularity = rating * log10(votes + 10)
   # so a 9.0 with 50k votes outweighs a 9.5 with 100.
-  cached_shows <- cached_shows %>%
+  cached_shows <- cached_shows |>
     mutate(
       .pop = ifelse(is.na(rating) | is.na(votes), 0, rating * log10(votes + 10))
-    ) %>%
-    group_by(title) %>%
-    mutate(.group_pop = max(.pop)) %>%
-    ungroup() %>%
-    arrange(desc(.group_pop), title, year) %>%
+    ) |>
+    group_by(title) |>
+    mutate(.group_pop = max(.pop)) |>
+    ungroup() |>
+    arrange(desc(.group_pop), title, year) |>
     select(-.pop, -.group_pop)
 
   show_ids <- paste0("cache:", cached_shows$show_id)

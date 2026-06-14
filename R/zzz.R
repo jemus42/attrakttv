@@ -30,7 +30,6 @@ globalVariables(c(
   "show_id",
   "likes",
   "tvdb",
-  ".",
   "lang",
   "url",
   "title",

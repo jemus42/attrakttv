@@ -120,8 +120,8 @@ check_cache_table <- function(table_name, reference_table, cache_db_con) {
 #' }
 is_already_cached <- function(table_name, show_id, cache_db_con) {
   if (dbExistsTable(cache_db_con, table_name)) {
-    cached_ids <- tbl(cache_db_con, table_name) %>%
-      pull(show_id) %>%
+    cached_ids <- tbl(cache_db_con, table_name) |>
+      pull(show_id) |>
       unique()
 
     already_cached <- show_id %in% cached_ids
@@ -263,15 +263,15 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
   if ((already_cached & replace) | (!already_cached)) {
     ret <- seasons_summary(show_id, extended = "full", episodes = TRUE)
 
-    episodes <- ret %>%
-      pull(episodes) %>%
-      bind_rows() %>%
-      mutate(show_id = show_id) %>%
+    episodes <- ret |>
+      pull(episodes) |>
+      bind_rows() |>
+      mutate(show_id = show_id) |>
       cleanup_episodes()
 
-    seasons <- ret %>%
-      select(-episodes) %>%
-      mutate(show_id = show_id) %>%
+    seasons <- ret |>
+      select(-episodes) |>
+      mutate(show_id = show_id) |>
       cleanup_seasons()
 
     cache_add_data("seasons", seasons, replace = replace, cache_db_con)
@@ -292,9 +292,9 @@ cache_add_episodes <- function(show_id, replace = FALSE, cache_db_con) {
 #' @importFrom dplyr tbl collect filter pull tibble
 cache_add_poster <- function(show_id, replace = FALSE, cache_db_con) {
   if (!is_already_cached("posters", show_id, cache_db_con)) {
-    tvdbid <- tbl(cache_db_con, "shows") %>%
-      collect() %>%
-      filter(show_id == show_id) %>%
+    tvdbid <- tbl(cache_db_con, "shows") |>
+      collect() |>
+      filter(show_id == show_id) |>
       pull(tvdb)
 
     res <- tibble(
@@ -337,15 +337,15 @@ cache_add_data <- function(
   # TRUE   | FALSE   | -> do nothing
   # FALSE  | TRUE    | -> write
   # FALSE  | FALSE   | -> write
-  new_data <- new_data %>%
+  new_data <- new_data |>
     mutate(cache_date = as.numeric(now(tzone = "UTC")))
 
   if (has_name(new_data, "first_aired")) {
-    new_data <- new_data %>%
+    new_data <- new_data |>
       mutate(first_aired = as.numeric(first_aired))
   }
   if (has_name(new_data, "updated_at")) {
-    new_data <- new_data %>%
+    new_data <- new_data |>
       mutate(updated_at = as.numeric(updated_at))
   }
 
@@ -355,14 +355,14 @@ cache_add_data <- function(
   # Not needed once I settle on a global ID / name
   matching_id <- "show_id"
 
-  current_id <- new_data %>%
-    pull(!!sym(matching_id)) %>%
-    unique() %>%
+  current_id <- new_data |>
+    pull(!!sym(matching_id)) |>
+    unique() |>
     as.character()
 
   # Get ids of data already in cache
-  cached_ids <- tbl(cache_db_con, table_name) %>%
-    pull(!!sym(matching_id)) %>%
+  cached_ids <- tbl(cache_db_con, table_name) |>
+    pull(!!sym(matching_id)) |>
     unique()
 
   already_cached <- current_id %in% cached_ids
@@ -449,8 +449,8 @@ cache_delete_rows <- function(table_name, where_id, is_id, cache_db_con) {
 cache_drop_old_rows <- function(table_name, threshold_days = 7, cache_db_con) {
   cutoff_time <- days_ago(threshold_days)
 
-  to_delete <- tbl(cache_db_con, table_name) %>%
-    filter(cache_date < cutoff_time) %>%
+  to_delete <- tbl(cache_db_con, table_name) |>
+    filter(cache_date < cutoff_time) |>
     pull(show_id)
 
   cache_delete_rows(
@@ -488,15 +488,15 @@ cache_update_episodes <- function(criterion = "aired") {
   episodes <- tbl(cache_db_con, "episodes")
 
   if (criterion == "aired") {
-    episodes <- episodes %>% filter(first_aired > cache_date)
+    episodes <- episodes |> filter(first_aired > cache_date)
   }
 
-  shows_to_replace <- episodes %>%
-    distinct(show_id) %>%
+  shows_to_replace <- episodes |>
+    distinct(show_id) |>
     left_join(
-      tbl(cache_db_con, "shows") %>% select(show_id, title),
+      tbl(cache_db_con, "shows") |> select(show_id, title),
       by = "show_id"
-    ) %>%
+    ) |>
     collect()
 
   pwalk(
@@ -526,7 +526,7 @@ cache_update_trending <- function(n = 100) {
   cache_db_con <- cache_db(pool = FALSE)
   on.exit(dbDisconnect(cache_db_con))
 
-  shows <- shows_trending(limit = n, extended = "min") %>%
+  shows <- shows_trending(limit = n, extended = "min") |>
     select(title, trakt)
 
   pwalk(

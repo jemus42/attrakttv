@@ -24,7 +24,6 @@ Imports:
     htmltools,
     httr,
     lubridate,
-    magrittr,
     pool,
     purrr,
     rlang,

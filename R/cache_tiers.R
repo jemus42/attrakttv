@@ -107,9 +107,9 @@ need_refresh <- function(
   if (!dbExistsTable(cache_db_con, "episodes")) {
     return(NA_real_)
   }
-  eps <- tbl(cache_db_con, "episodes") %>%
-    filter(show_id == !!target_id) %>%
-    summarize(last_aired = max(first_aired, na.rm = TRUE)) %>%
+  eps <- tbl(cache_db_con, "episodes") |>
+    filter(show_id == !!target_id) |>
+    summarize(last_aired = max(first_aired, na.rm = TRUE)) |>
     collect()
   if (nrow(eps) == 0 || is.na(eps$last_aired) || !is.finite(eps$last_aired)) {
     return(NA_real_)
@@ -187,8 +187,8 @@ cache_refresh_if_stale <- function(
     return(invisible(FALSE))
   }
 
-  row <- tbl(con, "shows") %>%
-    filter(show_id == !!as.character(target_id)) %>%
+  row <- tbl(con, "shows") |>
+    filter(show_id == !!as.character(target_id)) |>
     collect()
   if (nrow(row) == 0) {
     return(invisible(FALSE))
@@ -233,19 +233,19 @@ cache_refresh_tick <- function(config = attrakttv_config()) {
     )))
   }
 
-  shows <- tbl(con, "shows") %>% collect()
+  shows <- tbl(con, "shows") |> collect()
 
   last_aired_tbl <- if (dbExistsTable(con, "episodes")) {
-    tbl(con, "episodes") %>%
-      group_by(show_id) %>%
-      summarize(last_aired = max(first_aired, na.rm = TRUE)) %>%
+    tbl(con, "episodes") |>
+      group_by(show_id) |>
+      summarize(last_aired = max(first_aired, na.rm = TRUE)) |>
       collect()
   } else {
     tibble::tibble(show_id = character(0), last_aired = numeric(0))
   }
 
-  shows <- shows %>%
-    left_join(last_aired_tbl, by = "show_id") %>%
+  shows <- shows |>
+    left_join(last_aired_tbl, by = "show_id") |>
     mutate(
       last_aired_days = as.numeric(
         difftime(
