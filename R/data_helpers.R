@@ -170,7 +170,7 @@ get_fanart_poster <- function(
     "?api_key=",
     api_key
   )
-  resp <- tryCatch(httr::GET(query), error = function(e) NULL)
+  resp <- tryCatch(httr::GET(query), error = \(e) NULL)
   if (is.null(resp)) {
     cli::cli_alert_danger("fanart request failed for tvdb {tvdbid}")
     return(blank)
@@ -182,7 +182,7 @@ get_fanart_poster <- function(
     return(blank)
   }
 
-  ret <- tryCatch(httr::content(resp), error = function(e) NULL)
+  ret <- tryCatch(httr::content(resp), error = \(e) NULL)
   if (!is.list(ret)) {
     cli::cli_alert_danger("fanart response not a list for tvdb {tvdbid}")
     return(blank)
@@ -200,7 +200,7 @@ get_fanart_poster <- function(
         arrange(desc(likes), lang) |>
         head(1) |>
         pull(url),
-      error = function(e) NULL
+      error = \(e) NULL
     )
   }
   url <- pick_top("tvposter") %||% pick_top("seasonposter")

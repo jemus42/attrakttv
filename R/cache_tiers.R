@@ -156,7 +156,7 @@ need_refresh <- function(
       )
       TRUE
     },
-    error = function(e) {
+    error = \(e) {
       cli_alert_danger("Refresh failed for {title}: {conditionMessage(e)}")
       FALSE
     }
@@ -300,7 +300,7 @@ cache_refresh_loop <- function(config = attrakttv_config()) {
   repeat {
     tryCatch(
       cache_refresh_tick(config),
-      error = function(e) {
+      error = \(e) {
         cli_alert_danger("Tick crashed: {conditionMessage(e)}")
       }
     )

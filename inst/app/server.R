@@ -42,7 +42,7 @@ shinyServer(function(input, output, session) {
         n_results = 8,
         extended = "min"
       ),
-      error = function(e) {
+      error = \(e) {
         cli_alert_danger("trakt search failed: {conditionMessage(e)}")
         NULL
       }
@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
         ord <- order(exact_rank, -votes)
         hits <- hits[ord, , drop = FALSE]
 
-        items <- lapply(seq_len(nrow(hits)), function(i) {
+        items <- lapply(seq_len(nrow(hits)), \(i) {
           list(
             value = paste0("trakt:", hits$trakt[i]),
             label = as.character(glue("{hits$title[i]} ({hits$year[i]})"))
@@ -182,7 +182,7 @@ shinyServer(function(input, output, session) {
       # them. No-op for warm/cold/future tiers (those rely on the sidecar).
       tryCatch(
         cache_refresh_if_stale(input_show, trigger = "on_search"),
-        error = function(e) {
+        error = \(e) {
           cli_alert_info("on-search refresh skipped: {conditionMessage(e)}")
         }
       )
@@ -240,9 +240,7 @@ shinyServer(function(input, output, session) {
       current_show <- show_info()
       current_show_id <- current_show$show_id
 
-      if (current_show$aired_episodes == 0) {
-        return(NULL)
-      }
+      req(current_show$aired_episodes > 0)
 
       if (!is_already_cached("seasons", current_show_id, cache_db_con)) {
         cli_alert_success("Adding {current_show_id} episodes to cache")
@@ -300,9 +298,7 @@ shinyServer(function(input, output, session) {
       current_show <- show_info()
       current_show_id <- current_show$show_id
 
-      if (current_show$aired_episodes == 0) {
-        return(NULL)
-      }
+      req(current_show$aired_episodes > 0)
 
       # if (!is_already_cached("episodes", current_show_id, cache_db_con)) {
       #   cli_alert_success("Adding {current_show_id} episodes to cache")
@@ -424,10 +420,7 @@ shinyServer(function(input, output, session) {
   # DT: Seasons ----
   output$show_seasons_table <- DT::renderDT({
     seasons <- show_seasons()
-
-    if (is.null(seasons)) {
-      return(NULL)
-    }
+    req(seasons)
 
     seasons <- seasons |> select(-season)
 
@@ -490,10 +483,7 @@ shinyServer(function(input, output, session) {
   # DT: Episodes ----
   output$show_episodes_table <- DT::renderDT({
     episodes <- show_episodes()
-
-    if (is.null(episodes)) {
-      return(NULL)
-    }
+    req(episodes)
 
     episodes |>
       transmute(
@@ -546,10 +536,7 @@ shinyServer(function(input, output, session) {
   # plotly: Episodes ----
   output$plotly_episodes <- renderPlotly({
     episodes <- show_episodes()
-
-    if (is.null(episodes)) {
-      return(NULL)
-    }
+    req(episodes)
 
     seasons <- show_seasons() |>
       select(season, season_title = title)
@@ -682,10 +669,7 @@ shinyServer(function(input, output, session) {
   # plotly: Seasons (boxplot of episode ratings per season) ----
   output$plotly_seasons <- renderPlotly({
     episodes <- show_episodes()
-
-    if (is.null(episodes) || nrow(episodes) == 0) {
-      return(NULL)
-    }
+    req(episodes, nrow(episodes) > 0)
 
     seasons_n <- length(unique(episodes$season))
     show_outliers <- nrow(episodes) <= 250 # too crowded for huge shows

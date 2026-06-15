@@ -27,7 +27,7 @@ cache_db_con <- cache_db()
 # mid-session (e.g. posters written by the show_info reactive).
 empty_tbl <- function(...) {
   cols <- list(...)
-  tibble::as_tibble(lapply(cols, function(type) {
+  tibble::as_tibble(lapply(cols, \(type) {
     switch(
       type,
       character = character(0),
@@ -164,6 +164,6 @@ if (nrow(cached_shows) == 0) {
 
 # Shiny start/stop ----
 # Close pool on stop
-onStop(function() {
+onStop(\() {
   pool::poolClose(pool = cache_db_con)
 })
